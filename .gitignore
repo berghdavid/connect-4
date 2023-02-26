@@ -29,6 +29,7 @@
 *.dylib
 
 # Executables
+src/connect-4
 *.exe
 *.out
 *.app

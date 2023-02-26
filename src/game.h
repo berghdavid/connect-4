@@ -59,6 +59,30 @@ int make_move(Game* g, int col);
 int field_filled(Game* g);
 
 /**
+ * @brief Check whether there is a 4-in-a-row victory column-wise.
+ * 
+ * @param g The game being played.
+ * @return int of 1 if true and 0 if false.
+ */
+int col_win(Game* g);
+
+/**
+ * @brief Check whether there is a 4-in-a-row victory row-wise.
+ * 
+ * @param g The game being played.
+ * @return int of 1 if true and 0 if false.
+ */
+int row_win(Game* g);
+
+/**
+ * @brief Check whether there is a 4-in-a-row victory diagonal-wise.
+ * 
+ * @param g The game being played.
+ * @return int of 1 if true and 0 if false.
+ */
+int diag_win(Game* g);
+
+/**
  * @brief Check whether the game is wither won or tied.
  * 
  * @param g The game being played.

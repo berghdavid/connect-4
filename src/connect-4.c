@@ -28,21 +28,20 @@ int play_game(InputType p1, InputType p2)
 	int	player;
 
 	g = init_game(7, 6);
-
 	while (1) {
+		print_game(g);
 		if (g->turn == 1) {
 			input = get_input(g, p1);
 		} else {
 			input = get_input(g, p2);
 		}
-		
 		if (input == -1 || !possible_move(g, input)) {
 			printf("Invalid move, try again.\n");
 			continue;
 		}
 		make_move(g, input);
-		print_game(g);
 		if (game_over(g)) {
+			print_game(g);
 			player = winner(g);
 			if (player == 0) {
 				printf("Game tied, no winner!\n");
@@ -51,9 +50,7 @@ int play_game(InputType p1, InputType p2)
 			}
 			break;
 		}
-
 	}
-
 	cleanup_game(g);
 	return 0;
 }
@@ -75,11 +72,9 @@ int main(int argc, char **argv)
 	}
 
 	printf("Must run with argument...\n");
-	printf("0: Play against self.\n");
-	/*
-	* printf("1: Play against bot.\n");
-	* printf("2: Bot against bot.\n");
-	* printf("3: Bot against AI course bot.\n");
-	*/
+	printf("\t0: Play against self.\n");
+	printf("\t1: Play against bot.\n");
+	printf("\t2: Bot against bot.\n");
+	/* printf("3: Bot against AI course bot.\n"); */
 	return 1;
 }
