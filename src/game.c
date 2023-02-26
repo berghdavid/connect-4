@@ -54,29 +54,61 @@ void print_game(Game* g)
 	printf("\nPlayer %d's turn.\n\n", g->turn);
 }
 
+int possible_move(Game* g, int col)
+{
+
+	return 0 <= col && col < g->cols && g->field[0][col] == 0;
+}
+
 int make_move(Game* g, int col)
 {
-	int	i;
+	int	row;
 
 	if (g->field[0][col] != 0) {
 		return 1;
 	}
 
-	for (i = 1; i < g->rows; i++) {
-		if (g->field[i][col] != 0) {
-			g->field[i][col] = g->turn;
-			g->turn = -g->turn;
-			return 0;
+	row = 0;
+	while (row < g->rows - 1) {
+		if (g->field[row + 1][col] != 0) {
+			break;
 		}
+		row++;
 	}
 
-	g->field[g->rows - 1][col] = g->turn;
+	g->field[row][col] = g->turn;
 	g->turn = -g->turn;
 	return 0;
 }
 
-int game_won(Game* g)
+int field_filled(Game* g)
 {
-	printf("%d", g->turn);
+	int	col;
+	int	game_over;
+
+	game_over = 1;
+	for (col = 0; col < g->cols; col++) {
+		if (g->field[0][col] == 0) {
+			game_over = 0;
+			break;
+		}
+	}
+	return game_over;
+}
+
+int game_over(Game* g)
+{
+	if (field_filled(g)) {
+		return 1;
+	}
+
+	printf("*TODO*: %d\n", g->turn);
+	
+	return 0;
+}
+
+int winner(Game* g)
+{
+	printf("*TODO*: %d\n", g->turn);
 	return 0;
 }

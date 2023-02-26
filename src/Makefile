@@ -13,7 +13,13 @@ PROGS = connect-4
 all: $(PROGS)
 
 run: connect-4
-	./connect-4
+	./connect-4 0
+
+run-pb: connect-4
+	./connect-4 1
+
+run-bb: connect-4
+	./connect-4 2
 
 debug: connect-4
 	valgrind --leak-check=full --track-origins=yes ./connect-4
