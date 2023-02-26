@@ -24,7 +24,7 @@ Game* init_game(int cols, int rows)
 	return g;
 }
 
-void cleanup_game(Game* g)
+void free_game(Game* g)
 {
 	int	i;
 	for (i = 0; i < g->rows; i++) {

@@ -23,7 +23,7 @@ Game* init_game(int cols, int rows);
  * 
  * @param g The game being played.
  */
-void cleanup_game(Game* g);
+void free_game(Game* g);
 
 /**
  * @brief Print the playing board.

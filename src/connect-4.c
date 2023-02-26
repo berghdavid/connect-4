@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include "connect-4.h"
 #include "game.h"
+#include "bot.h"
 
 int get_input(Game* g, InputType type)
 {
@@ -13,8 +14,7 @@ int get_input(Game* g, InputType type)
 	if (type == PLAYER) {
 		scanf("%d", &input);
 	} else if (type == BOT) {
-		/* Todo */
-		input = 0;
+		input = get_best_move(g);
 		printf("%d\n", input);
 	}
 
