@@ -1,5 +1,7 @@
 #include <assert.h>
 #include <stdlib.h>
+#include <time.h>
+#include <stdio.h>
 #include "bot.h"
 
 #define min(a, b) (((a) < (b)) ? (a) : (b))
@@ -18,7 +20,7 @@ State* init_root(Game* g)
 	s->turn = g->turn;
 
 	s->field = clone_field(g, g->field);
-	s->children = possible_moves(s);
+	s->children = NULL;
 	return s;
 }
 
@@ -57,7 +59,7 @@ int eval_rows(State* s)
 
 	sum = 0;
 	floor = max(0, s->move_col - 3);
-	roof = min(s->g->cols, s->move_col + 4) - 3;
+	roof = min(s->g->cols, s->move_col + 4) - 4;
 	for (i = floor; i <= roof; i++) {
 		p_opp = 0;
 		p_me = 0;
@@ -86,7 +88,7 @@ int eval_cols(State* s)
 
 	sum = 0;
 	floor = max(0, s->move_row - 3);
-	roof = min(s->g->rows, s->move_row + 4) - 3;
+	roof = min(s->g->rows, s->move_row + 4) - 4;
 	for (i = floor; i <= roof; i++) {
 		p_opp = 0;
 		p_me = 0;
@@ -113,11 +115,10 @@ int eval_diags(State* s)
 	int	p_me;
 
 	sum = 0;
-
 	/* Diagonally down */
-	floor = -min(3, max(s->move_col, s->move_row));
-	roof = min(s->g->rows, max(s->move_col + 3, s->move_row + 3)) - 3;
-	for (i = floor; i <= roof; i++) {
+	floor = -min(3, min(s->move_row, s->move_col));
+	roof = max(-3, min(s->g->rows - s->move_row, s->g->cols - s->move_col) - 4);
+	for (i = floor; i < roof; i++) {
 		p_opp = 0;
 		p_me = 0;
 		for (j = 0; j < 4; j++) {
@@ -131,8 +132,8 @@ int eval_diags(State* s)
 	}
 
 	/* Diagonally up */
-	floor = -min(3, max(s->move_col, s->g->rows - s->move_row - 1));
-	roof = min(s->g->rows, max(s->move_col + 3, s->g->rows - s->move_row + 2)) - 3;
+	floor = -min(3, min(s->g->rows - s->move_row - 1, s->move_col));
+	roof = max(-3, min(s->move_row, s->g->cols - s->move_col) - 4);
 	for (i = floor; i <= roof; i++) {
 		p_opp = 0;
 		p_me = 0;
@@ -153,34 +154,74 @@ void eval_state(State* s)
 	s->eval += s->parent->turn * (eval_rows(s) + eval_cols(s) + eval_diags(s));
 }
 
+void reevaluate(State* parent)
+{
+	Node*	n;
+	int	eval_parent;
+
+	if (parent == NULL) {
+		return;
+	}
+	n = parent->children->first;
+	eval_parent = 0;
+	while (n != NULL) {
+		if (parent->turn * n->state->eval > parent->turn * parent->eval) {
+			parent->eval = n->state->eval;
+			parent->best_move = n->state;
+			eval_parent = 1;
+		}
+		n = n->next;
+	}
+	if (eval_parent == 1) {
+		reevaluate(parent->parent);
+	}
+}
+
 void eval_children(List* work, State* s)
 {
 	Node*	child;
 
+	s->children = possible_moves(s);
 	child = s->children->first;
-	while (s != NULL) {
+	while (child != NULL) {
 		eval_state(child->state);
 		l_append(work, child->state);
 		child = child->next;
 	}
+	reevaluate(s->parent);
 }
 
-int get_best_move(Game* g)
+int get_best_move(Game* g, time_t seconds)
 {
 	List*	work;
 	State*	root;
-	int     out;
+	State*	s;
+	time_t	stamp;
+	int	batch;
+	int	done;
+	int	best;
 
-	root = init_root(g);
-	print_state(root);
-
+	stamp = time(NULL);
 	work = init_list();
+	root = init_root(g);
 	l_append(work, root);
+
+	done = 0;
+	while (!done && time(NULL) < stamp + seconds) {
+		for (batch = 0; batch < 10000; batch++) {
+			s = l_pop_first(work);
+			if (s == NULL) {
+				done = 1;
+				break;
+			}
+			eval_children(work, s);
+		}
+		printf("Size: %d\n", work->size);
+	}
+
+	print_state(root);
+	best = root->best_move->move_col;
 	free_list(work);
-
-	out = rand() % g->cols;
-
 	free_state(root);
-
-	return out;
+	return best;
 }

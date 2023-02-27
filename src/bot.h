@@ -15,10 +15,10 @@ int eval_diags(State* s);
 
 void eval_state(State* s);
 
+void reevaluate(State* parent);
+
 void eval_children(List* l, State* s);
 
-Node* pop();
-
-int get_best_move(Game* g);
+int get_best_move(Game* g, time_t seconds);
 
 #endif

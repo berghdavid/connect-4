@@ -79,6 +79,9 @@ State* l_pop_first(List* l)
 	State*	s;
 
 	n = l->first;
+	if (n == NULL) {
+		return NULL;
+	}
 	s = n->state;
 	if (l->first == l->last) {
 		l->last = NULL;
@@ -206,8 +209,8 @@ State* init_state(State* parent, int move)
 	s->move_col = move;
 	s->turn = -s->parent->turn;
 
+	s->children = NULL;
 	s->move_row = get_move_row(s);
-	s->children = init_list();
 	s->field = new_field(s);
 	s->eval = parent->eval;
 	return s;
