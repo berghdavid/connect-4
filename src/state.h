@@ -3,8 +3,9 @@
 
 #include "game.h"
 
-typedef struct List List;
 typedef struct State State;
+typedef struct Node Node;
+typedef struct List List;
 
 struct State {
 	State*	best_move;
@@ -12,19 +13,26 @@ struct State {
 	int	eval;
 	int**	field;
 	Game*	g;
-	State*	next;
 	State*	parent;
-	int	prev_move;
+	int	move_col;
+	int	move_row;
 	int	turn;
 };
 
+struct Node {
+	State*	state;
+	Node*	next;
+};
+
 struct List {
-	State*	first;
-	State*	last;
+	Node*	first;
+	Node*	last;
 	int	size;
 };
 
 List* init_list();
+
+void free_list_and_contents(List* l);
 
 void free_list(List* l);
 
@@ -32,7 +40,7 @@ void l_append(List* l, State* s);
 
 State* l_get(List* l, int index);
 
-int l_remove(List* l, State* s);
+State* l_pop_first(List* l);
 
 List* possible_moves(State* s);
 
@@ -40,13 +48,13 @@ void print_state(State* s);
 
 void free_state(State* s);
 
-void eval_state(State* s);
-
 int state_depth(State* s);
 
 int** clone_field(Game* g, int** field);
 
 int** new_field(State* s);
+
+int get_move_row(State* s);
 
 State* init_state(State* parent, int move);
 

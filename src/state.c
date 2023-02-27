@@ -13,15 +13,30 @@ List* init_list()
 	return l;
 }
 
-void free_list(List* l)
+void free_list_and_contents(List* l)
 {
-	State*	child;
-	State*	next;
+	Node*	child;
+	Node*	next;
 
 	child = l->first;
 	while (child != NULL) {
 		next = child->next;
-		free_state(child);
+		free_state(child->state);
+		free(child);
+		child = next;
+	}
+	free(l);
+}
+
+void free_list(List* l)
+{
+	Node*	child;
+	Node*	next;
+
+	child = l->first;
+	while (child != NULL) {
+		next = child->next;
+		free(child);
 		child = next;
 	}
 	free(l);
@@ -29,54 +44,49 @@ void free_list(List* l)
 
 void l_append(List* l, State* s)
 {
+	Node*	n;
+
+	n = malloc(sizeof(Node));
+	n->state = s;
+	n->next = NULL;
 	if (l->last == NULL) {
-		l->first = s;
+		l->first = n;
 	} else {
-		l->last->next = s;
+		l->last->next = n;
 	}
-	l->last = s;
+	l->last = n;
 	l->size++;
 }
 
 State* l_get(List* l, int index)
 {
-	State*	s;
+	Node*	n;
 	int	i;
 
 	if (index < 0 || l->size <= index) {
 		return NULL;
 	}
-	s = l->first;
+	n = l->first;
 	for (i = 0; i < index; i++) {
-		s = s->next;
+		n = n->next;
 	}
-	return s;
+	return n->state;
 }
 
-int l_remove(List* l, State* s)
+State* l_pop_first(List* l)
 {
-	State*	s_i;
-	State*	prev;
+	Node*	n;
+	State*	s;
 
-	if (l->first == s) {
-		l->first = l->first->next;
-		free_state(s);
-		l->size--;
-		return 1;
+	n = l->first;
+	s = n->state;
+	if (l->first == l->last) {
+		l->last = NULL;
 	}
-
-	prev = l->first;
-	s_i = l->first->next;
-	while (s_i != NULL) {
-		if (s_i == s) {
-			prev->next = s_i->next;
-			free_state(s);
-			l->size--;
-			return 1;
-		}
-		s_i = s_i->next;
-	}
-	return 0;
+	l->first = l->first->next;
+	free(n);
+	l->size--;
+	return s;
 }
 
 List* possible_moves(State* s)
@@ -95,25 +105,27 @@ List* possible_moves(State* s)
 
 void print_state(State* s)
 {
+	Node*	child;
 	State*	s_i;
 
-	printf(" --- STATE PRINT ---\n");
+	printf(" --- STATE PRINT BEGIN ---\n");
 	print_game(s->g, s->field);
-	printf("Previous move: %d\n", s->prev_move);
+	printf("Previous move: [row: %d, col: %d]\n", s->move_row, s->move_col);
 	printf("Evaluation: %d\n", s->eval);
 	printf("Turn: %d\n", s->turn);
 	if (s->best_move != NULL) {
-		printf("Best move: %d\n", s->best_move->prev_move);
+		printf("Best move: [%d, %d]\n", s->best_move->move_row, s->best_move->move_col);
 	} else {
 		printf("Best move: NULL\n");
 	}
-	s_i = s->children->first;
+	child = s->children->first;
 	printf("Moves:\n");
-	while (s_i != NULL) {
-		printf("\t%d: Eval = %d\n", s_i->prev_move, s_i->eval);
-		s_i = s_i->next;
+	while (child != NULL) {
+		s_i = child->state;
+		printf("\t[%d, %d]: Eval = %d\n", s_i->move_row, s_i->move_col, s_i->eval);
+		child = child->next;
 	}
-	printf(" --- STATE ---\n");
+	printf(" --- STATE PRINT END ---\n");
 }
 
 void free_state(State* s)
@@ -125,14 +137,9 @@ void free_state(State* s)
 	free(s->field);
 
 	if (s->children != NULL) {
-		free_list(s->children);
+		free_list_and_contents(s->children);
 	}
 	free(s);
-}
-
-void eval_state(State* s)
-{
-	s->eval = 0;
 }
 
 int state_depth(State* s)
@@ -168,21 +175,24 @@ int** clone_field(Game* g, int** old_field)
 int** new_field(State* s)
 {
 	int**	new_f;
-	int	i;
-
 	new_f = clone_field(s->g, s->parent->field);
-	assert(new_f[0][s->prev_move] == 0);
+	new_f[s->move_row][s->move_col] = -s->turn;
+	return new_f;
+}
 
-	i = 0;
-	while (i < s->g->rows - 1) {
-		if (new_f[i + 1][s->prev_move] != 0) {
+int get_move_row(State* s)
+{
+	int	row;
+	assert(s->parent->field[0][s->move_col] == 0);
+
+	row = 0;
+	while (row < s->g->rows - 1) {
+		if (s->parent->field[row + 1][s->move_col] != 0) {
 			break;
 		}
-		i++;
+		row++;
 	}
-
-	new_f[i][s->prev_move] = -s->turn;
-	return new_f;
+	return row;
 }
 
 State* init_state(State* parent, int move)
@@ -193,11 +203,12 @@ State* init_state(State* parent, int move)
 	s->best_move = NULL;
 	s->g = parent->g;
 	s->parent = parent;
-	s->prev_move = move;
-	s->turn = -s->parent->prev_move;
+	s->move_col = move;
+	s->turn = -s->parent->turn;
 
+	s->move_row = get_move_row(s);
 	s->children = init_list();
 	s->field = new_field(s);
-	s->eval = 0;
+	s->eval = parent->eval;
 	return s;
 }
