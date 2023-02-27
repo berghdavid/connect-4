@@ -22,9 +22,9 @@ run-bb: connect-4
 	./connect-4 2
 
 debug: connect-4
-	valgrind --leak-check=full --track-origins=yes ./connect-4
+	valgrind --leak-check=full --track-origins=yes ./connect-4 2
 
-connect-4: connect-4.o game.o bot.o
+connect-4: connect-4.o game.o bot.o state.o
 
 clean:
 	rm -f *.o $(PROGS)

@@ -8,15 +8,15 @@ int get_input(Game* g, InputType type)
 {
 	int	input;
 
-	printf("Player %d's turn: ", g->turn);
-
 	input = -1;
 	if (type == PLAYER) {
+		printf("Player %d's turn: ", g->turn);
 		scanf("%d", &input);
 	} else if (type == BOT) {
+		printf("Player %d's turn:\n", g->turn);
 		input = get_best_move(g);
-		printf("%d\n", input);
 	}
+	printf("Selected move: %d\n", input);
 
 	return input;
 }
@@ -26,22 +26,36 @@ int play_game(InputType p1, InputType p2)
 	Game*	g;
 	int	input;
 	int	player;
+	int	fails;
+	int	round;
 
 	g = init_game(7, 6);
+	fails = 0;
+	round = 0;
 	while (1) {
-		print_game(g);
+		printf("\n --- ROUND %d ---\n", round);
+		print_game(g, g->field);
 		if (g->turn == 1) {
 			input = get_input(g, p1);
 		} else {
 			input = get_input(g, p2);
 		}
-		if (input == -1 || !possible_move(g, input)) {
-			printf("Invalid move, try again.\n");
+		if (!possible_move(g, input)) {
+			fails++;
+			printf("Invalid move %d/3. ", fails);
+			if (fails < 3) {
+				printf("Try again.\n");
+			} else {
+				printf("Player %d submitted too many incorrect inputs\n", g->turn);
+				printf("Player %d won!\n", -g->turn);
+				break;
+			}
 			continue;
 		}
 		make_move(g, input);
+		round++;
 		if (game_over(g)) {
-			print_game(g);
+			print_game(g, g->field);
 			player = winner(g);
 			if (player == 0) {
 				printf("Game tied, no winner!\n");

@@ -29,8 +29,9 @@ void free_game(Game* g);
  * @brief Print the playing board.
  * 
  * @param g The game being played.
+ * @param g The field to display.
  */
-void print_game(Game* g);
+void print_game(Game* g, int** field);
 
 /**
  * @brief Check whether the given move is possible according to the game rules.

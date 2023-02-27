@@ -32,26 +32,28 @@ void free_game(Game* g)
 	free(g);
 }
 
-void print_game(Game* g)
+void print_game(Game* g, int** field)
 {
 	int	i;
 	int	j;
 
-	for (j = 0; j < (3 * g->cols) + 2; j++) {
+	printf("+");
+	for (j = 0; j < (3 * g->cols); j++) {
 		printf("-");
 	}
-	printf("\n");
+	printf("+\n");
 	for (i = 0; i < g->rows; i++) {
 		printf("|");
 		for (j = 0; j < g->cols; j++) {
-			printf("%2d ", g->field[i][j]);
+			printf("%2d ", field[i][j]);
 		}
 		printf("|\n");
 	}
-	for (j = 0; j < (3 * g->cols) + 2; j++) {
+	printf("+");
+	for (j = 0; j < (3 * g->cols); j++) {
 		printf("-");
 	}
-	printf("\n\n");
+	printf("+\n");
 }
 
 int possible_move(Game* g, int col)
