@@ -3,8 +3,6 @@
 #include <stdlib.h>
 #include "game.h"
 
-#define min(a, b) (((a) < (b)) ? (a) : (b));
-
 Game* init_game(int cols, int rows)
 {
 	Game*	g;

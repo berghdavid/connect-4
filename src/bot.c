@@ -1,7 +1,8 @@
+#include <assert.h>
 #include <stdlib.h>
 #include "bot.h"
 
-State* init_list()
+List* init_list()
 {
 	List*	l;
 	l = malloc(sizeof(List));
@@ -25,7 +26,7 @@ void free_list(List* l)
 	free(l);
 }
 
-void append(List* l, State* s)
+void l_append(List* l, State* s)
 {
 	if (l->last == NULL) {
 		l->first = s;
@@ -36,7 +37,7 @@ void append(List* l, State* s)
 	l->size++;
 }
 
-int remove(List* l, State* s)
+int l_remove(List* l, State* s)
 {
 	State*	s_i;
 	State*	prev;
@@ -62,43 +63,108 @@ int remove(List* l, State* s)
 	return 0;
 }
 
-State* init_state(State* parent, int move)
-{
-	State*	s;
-	s = malloc(sizeof(State));
-
-	s->best_move = NULL;
-	s->children = init_list();
-	s->eval = s->parent->eval;
-	s->field = NULL;	/* TODO */
-	s->parent = parent;
-	s->prev_move = move;
-
-	return s;
-}
-
 void free_state(State* s)
 {
+	int	i;
+
+	for (i = 0; i < s->g->rows; i++) {
+		free(s->field[i]);
+	}
+	free(s->field);
+
 	if (s->children != NULL) {
 		free_list(s->children);
 	}
 	free(s);
 }
 
-int eval_state(State* s)
+void eval_state(State* s)
 {
-	return 0;
+	s->eval = 0;
 }
 
-List* possible_moves(Game* g, State* s)
+List* possible_moves(State* s)
 {
-	List*	l;
+	List*	list;
 	int	i;
 
-	l = init_list();
-	for (i = 0; i < g->cols; i++) {
-		/* TODO */
+	list = init_list();
+	for (i = 0; i < s->g->cols; i++) {
+		if (s->field[0][i] == 0) {
+			l_append(list, init_state(s, i));
+		}
 	}
+	return list;
+}
+
+int** clone_field(Game* g, int** old_field)
+{
+	int**	new_f;
+	int	i;
+	int	j;
+
+	new_f = malloc(g->rows * sizeof(int*));
+	for (i = 0; i < g->cols; i++) {
+		new_f[i] = malloc(g->cols * sizeof(int));
+		for (j = 0; j < g->cols; j++) {
+			new_f[i][j] = old_field[i][j];
+		}
+	}
+	return new_f;
+}
+
+int** new_field(State* s)
+{
+	int**	new_f;
+	int	i;
+
+	new_f = clone_field(s->g, s->parent->field);
+	assert(new_f[0][s->prev_move] == 0);
+
+	i = 0;
+	while (i < s->g->rows - 1) {
+		if (new_f[i + 1][s->prev_move] != 0) {
+			break;
+		}
+		i++;
+	}
+
+	new_f[i][s->prev_move] = -s->turn;
+	return new_f;
+}
+
+State* init_state(State* parent, int move)
+{
+	State*	s;
+	s = malloc(sizeof(State));
+
+	s->best_move = NULL;
+	s->g = s->parent->g;
+	s->parent = parent;
+	s->prev_move = move;
+	s->turn = -s->parent->prev_move;
+
+	s->children = init_list();
+	s->field = new_field(s);
+	s->eval = 0;
+	return s;
+}
+
+State* init_root(Game* g)
+{
+	State*	s;
+	s = malloc(sizeof(State));
+
+	s->best_move = NULL;
+	s->g = s->parent->g;
+	s->parent = NULL;
+	s->prev_move = -1;
+
+	s->field = clone_field(g, g->field);
+	s->children = possible_moves(s);
+	s->eval = 0;
+	return s;
+
 }
 
 int get_best_move(Game* g)

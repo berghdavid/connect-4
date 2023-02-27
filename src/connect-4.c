@@ -51,7 +51,7 @@ int play_game(InputType p1, InputType p2)
 			break;
 		}
 	}
-	cleanup_game(g);
+	free_game(g);
 	return 0;
 }
 
