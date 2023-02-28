@@ -52,6 +52,7 @@ int play_game(InputType p1, InputType p2)
 			}
 			continue;
 		}
+		fails = 0;
 		make_move(g, input);
 		round++;
 		if (game_over(g)) {

@@ -11,7 +11,6 @@ struct State {
 	Game*	g;
 	List*	children;
 	State*	parent;
-	State*	best_move;
 	int**	field;
 	int	depth;
 	int	eval;
@@ -47,15 +46,19 @@ State* l_pop_first(List* l);
 
 void l_print(List* l);
 
-void resort_element(List* l, State* s);
+void l_add_n(List* l_from, List* l_to);
+
+List* l_sort(List* l);
 
 List* possible_moves(State* s);
+
+State* best_state(State* s);
 
 void print_state(State* s);
 
 void free_state(State* s);
 
-int state_depth(State* s);
+int tree_depth(State* s);
 
 int** clone_field(Game* g, int** field);
 

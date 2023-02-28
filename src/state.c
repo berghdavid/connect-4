@@ -3,6 +3,8 @@
 #include <stdio.h>
 #include "state.h"
 
+#define max(a, b) (((a) > (b)) ? (a) : (b))
+
 List* init_list()
 {
 	List*	l;
@@ -63,10 +65,12 @@ void l_append_sorted(List* l, State* s)
 	Node*	n_i;
 	Node*	n;
 	int	val;
+	int	turn;
 
 	n = malloc(sizeof(Node));
 	n->state = s;
 	n->next = NULL;
+	turn = -s->turn;
 
 	if (l->first == NULL) {
 		l->size = 1;
@@ -76,15 +80,15 @@ void l_append_sorted(List* l, State* s)
 	}
 
 	n_i = l->first;
-	val = s->turn * s->eval;
-	if (n_i->state->turn * n_i->state->eval < val) {
+	val = turn * s->eval;
+	if (turn * n_i->state->eval < val) {
 		l->first = n;
 		n->next = n_i;
 		l->size++;
 		return;
 	}
 
-	while (n_i->next != NULL && n_i->next->state->turn * n_i->next->state->eval > val) {
+	while (n_i->next != NULL && turn * n_i->next->state->eval > val) {
 		n_i = n_i->next;
 	}
 	if (n_i->next == NULL) {
@@ -143,29 +147,39 @@ void l_print(List* l)
 	}
 }
 
-void resort_element(List* l, State* s)
+void l_add_n(List* l_from, List* l_to)
 {
-	Node*	prev;
+	int	i;
 	Node*	n;
+	int	limit;
 
-	if (s == l->first->state) {
-		l_pop_first(l);
-		l_append_sorted(l, s);
+	if (l_from->first == NULL) {
 		return;
 	}
-	n = l->first;
-	prev = l->first;
-	while (n != NULL && n->state != s) {
-		prev = n;
+
+	n = l_from->first;
+	limit = max(3, n->state->g->cols - n->state->depth);
+	i = 0;
+	while (n != NULL && i < limit && abs(n->state->eval) < limit) {
+		l_append(l_to, n->state);
 		n = n->next;
+		i++;
 	}
-	if (n == NULL) {
-		return;
+}
+
+List* l_sort(List* l)
+{
+	List*	sorted;
+	State*	child;
+
+	sorted = init_list();
+	child = l_pop_first(l);
+	while (child != NULL) {
+		l_append_sorted(sorted, child);
+		child = l_pop_first(l);
 	}
-	prev->next = n->next;
-	n->next = NULL;
-	
-	l_append_sorted(l, n->state);
+	free(l);
+	return sorted;
 }
 
 List* possible_moves(State* s)
@@ -182,6 +196,14 @@ List* possible_moves(State* s)
 	return list;
 }
 
+State* best_state(State* s)
+{
+	if (s->children != NULL && s->children->first != NULL) {
+		return s->children->first->state;
+	}
+	return NULL;
+}
+
 void print_state(State* s)
 {
 	Node*	child;
@@ -192,17 +214,19 @@ void print_state(State* s)
 	printf("Previous move: [row: %d, col: %d]\n", s->move_row, s->move_col);
 	printf("Evaluation: %d\n", s->eval);
 	printf("Turn: %d\n", s->turn);
-	if (s->best_move != NULL) {
-		printf("Best move: [%d, %d]\n", s->best_move->move_row, s->best_move->move_col);
+	if (best_state(s) != NULL) {
+		printf("Best move: [%d, %d]\n", best_state(s)->move_row, best_state(s)->move_col);
 	} else {
 		printf("Best move: NULL\n");
 	}
-	child = s->children->first;
-	printf("Moves:\n");
-	while (child != NULL) {
-		s_i = child->state;
-		printf("\t[%d, %d]: Eval = %d\n", s_i->move_row, s_i->move_col, s_i->eval);
-		child = child->next;
+	if (s->children != NULL) {
+		child = s->children->first;
+		printf("Moves:\n");
+		while (child != NULL) {
+			s_i = child->state;
+			printf("\t[%d, %d]: Eval = %d\n", s_i->move_row, s_i->move_col, s_i->eval);
+			child = child->next;
+		}
 	}
 	printf(" --- STATE PRINT END ---\n");
 }
@@ -210,6 +234,7 @@ void print_state(State* s)
 void free_state(State* s)
 {
 	int	i;
+
 	for (i = 0; i < s->g->rows; i++) {
 		free(s->field[i]);
 	}
@@ -221,15 +246,15 @@ void free_state(State* s)
 	free(s);
 }
 
-int state_depth(State* s)
+int tree_depth(State* root)
 {
 	int	depth;
 	State*	s_i;
 
-	depth = 0;
-	s_i = s;
-	while (s_i != NULL) {
-		s_i = s_i->parent;
+	depth = -1;
+	s_i = root;
+	while (s_i != NULL && s_i->children != NULL) {
+		s_i = s_i->children->first->state;
 		depth++;
 	}
 	return depth;
@@ -279,7 +304,6 @@ State* init_state(State* parent, int move)
 	State*	s;
 	s = malloc(sizeof(State));
 
-	s->best_move = NULL;
 	s->g = parent->g;
 	s->parent = parent;
 	s->move_col = move;
