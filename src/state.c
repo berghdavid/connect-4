@@ -147,23 +147,18 @@ void l_print(List* l)
 	}
 }
 
-void l_add_n(List* l_from, List* l_to, int min_nodes)
+void l_add_n(List* l_from, List* l_to)
 {
-	int	i;
 	Node*	n;
-	int	limit;
 
 	if (l_from->first == NULL) {
 		return;
 	}
 
 	n = l_from->first;
-	limit = max(min_nodes, n->state->g->cols - n->state->depth);
-	i = 0;
-	while (n != NULL && i < limit && abs(n->state->eval) < 99999) {
+	while (n != NULL && abs(n->state->eval) < 99999) {
 		l_append(l_to, n->state);
 		n = n->next;
-		i++;
 	}
 }
 
@@ -209,7 +204,7 @@ void print_state(State* s)
 	Node*	child;
 	State*	s_i;
 
-	printf(" --- STATE PRINT BEGIN ---\n");
+	//printf(" --- STATE PRINT BEGIN ---\n");
 	//printf("\tPrevious move: [row: %d, col: %d]\n", s->move_row, s->move_col);
 	//printf("\tTurn: %d\n", s->turn);
 	//printf("\tEvaluation: %d\n", s->eval);
@@ -222,7 +217,7 @@ void print_state(State* s)
 			child = child->next;
 		}
 	}
-	printf(" --- STATE PRINT END ---\n");
+	//printf(" --- STATE PRINT END ---\n");
 }
 
 void free_state(State* s)
@@ -245,10 +240,9 @@ int tree_depth(State* root)
 	int	depth;
 	State*	s_i;
 
-	depth = -1;
+	depth = 0;
 	s_i = root;
 	while (s_i != NULL && s_i->children != NULL) {
-		print_state(s_i);
 		s_i = s_i->children->first->state;
 		depth++;
 	}

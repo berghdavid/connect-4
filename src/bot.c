@@ -196,9 +196,6 @@ void reevaluate(State* state)
 	state->children = l_sort(state->children);
 	state->eval = best_state(state)->eval;
 	if (old_eval != state->eval) {
-		if (state->depth == 0) {
-			printf("Updated node in depth %d with eval %d->%d\n", state->depth, old_eval, state->eval);
-		}
 		reevaluate(state->parent);
 	}
 }
@@ -222,7 +219,7 @@ void eval_children(List* work, State* s)
 	}
 	free(s->children);
 	s->children = sorted;
-	l_add_n(s->children, work, 5);
+	l_add_n(s->children, work);
 	s->eval = best_state(s)->eval;
 	reevaluate(s->parent);
 }
@@ -239,7 +236,7 @@ int get_best_move(Game* g, time_t seconds)
 	int	iterations;
 
 	stamp = time(NULL);
-	batch_size = 100;
+	batch_size = 10000;
 	iterations = 0;
 	work = init_list();
 	root = init_root(g);
@@ -255,17 +252,13 @@ int get_best_move(Game* g, time_t seconds)
 		}
 		iterations++;
 	}
-
-	printf("Evaluated nodes: %d\n", ((iterations - 1) * batch_size) + batch);
-	printf("Size: %d\n", work->size);
-	printf("Depth achieved: %d\n", tree_depth(root));
-	print_state(root);
 	
 	if (best_state(root) != NULL) {
 		best = best_state(root)->move_col;
 	} else {
 		best = -1;
 	}
+	printf("Achieved depth %d\n", tree_depth(root));
 
 	free_list(work);
 	free_state(root);

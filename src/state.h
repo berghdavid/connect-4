@@ -46,7 +46,7 @@ State* l_pop_first(List* l);
 
 void l_print(List* l);
 
-void l_add_n(List* l_from, List* l_to, int min_nodes);
+void l_add_n(List* l_from, List* l_to);
 
 List* l_sort(List* l);
 
