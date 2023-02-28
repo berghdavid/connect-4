@@ -58,6 +58,45 @@ void l_append(List* l, State* s)
 	l->size++;
 }
 
+void l_append_sorted(List* l, State* s)
+{
+	Node*	n_i;
+	Node*	n;
+	int	val;
+
+	n = malloc(sizeof(Node));
+	n->state = s;
+	n->next = NULL;
+
+	if (l->first == NULL) {
+		l->size = 1;
+		l->first = n;
+		l->last = n;
+		return;
+	}
+
+	n_i = l->first;
+	val = s->turn * s->eval;
+	if (n_i->state->turn * n_i->state->eval < val) {
+		l->first = n;
+		n->next = n_i;
+		l->size++;
+		return;
+	}
+
+	while (n_i->next != NULL && n_i->next->state->turn * n_i->next->state->eval > val) {
+		n_i = n_i->next;
+	}
+	if (n_i->next == NULL) {
+		l->last->next = n;
+		l->last = n;
+	} else {
+		n->next = n_i->next;
+		n_i->next = n;
+	}
+	l->size++;
+}
+
 State* l_get(List* l, int index)
 {
 	Node*	n;
@@ -90,6 +129,43 @@ State* l_pop_first(List* l)
 	free(n);
 	l->size--;
 	return s;
+}
+
+void l_print(List* l)
+{
+	Node*	n;
+
+	n = l->first;
+	printf("List of size %d for turn %d\n", l->size, l->first->state->turn);
+	while (n != NULL) {
+		printf("\t%d: %d\n", n->state->move_col, n->state->eval);
+		n = n->next;
+	}
+}
+
+void resort_element(List* l, State* s)
+{
+	Node*	prev;
+	Node*	n;
+
+	if (s == l->first->state) {
+		l_pop_first(l);
+		l_append_sorted(l, s);
+		return;
+	}
+	n = l->first;
+	prev = l->first;
+	while (n != NULL && n->state != s) {
+		prev = n;
+		n = n->next;
+	}
+	if (n == NULL) {
+		return;
+	}
+	prev->next = n->next;
+	n->next = NULL;
+	
+	l_append_sorted(l, n->state);
 }
 
 List* possible_moves(State* s)
@@ -213,5 +289,6 @@ State* init_state(State* parent, int move)
 	s->move_row = get_move_row(s);
 	s->field = new_field(s);
 	s->eval = parent->eval;
+	s->depth = parent->depth + 1;
 	return s;
 }

@@ -17,6 +17,8 @@ void eval_state(State* s);
 
 void reevaluate(State* parent);
 
+void l_add_n(List* l_from, List* l_to, int nbr);
+
 void eval_children(List* l, State* s);
 
 int get_best_move(Game* g, time_t seconds);

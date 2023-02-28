@@ -13,6 +13,7 @@ State* init_root(Game* g)
 	s = malloc(sizeof(State));
 	s->best_move = NULL;
 	s->eval = 0;
+	s->depth = 0;
 	s->g = g;
 	s->parent = NULL;
 	s->move_col = -1;
@@ -179,15 +180,19 @@ void reevaluate(State* parent)
 
 void eval_children(List* work, State* s)
 {
+	List*	sorted;
 	Node*	child;
 
+	sorted = init_list();
 	s->children = possible_moves(s);
 	child = s->children->first;
 	while (child != NULL) {
 		eval_state(child->state);
+		l_append_sorted(sorted, child->state);
 		l_append(work, child->state);
 		child = child->next;
 	}
+	free_list(sorted);
 	reevaluate(s->parent);
 }
 
@@ -198,7 +203,6 @@ int get_best_move(Game* g, time_t seconds)
 	State*	s;
 	time_t	stamp;
 	int	batch;
-	int	done;
 	int	best;
 
 	stamp = time(NULL);
@@ -206,12 +210,10 @@ int get_best_move(Game* g, time_t seconds)
 	root = init_root(g);
 	l_append(work, root);
 
-	done = 0;
-	while (!done && time(NULL) < stamp + seconds) {
+	while (work->first != NULL && time(NULL) < stamp + seconds) {
 		for (batch = 0; batch < 10000; batch++) {
 			s = l_pop_first(work);
 			if (s == NULL) {
-				done = 1;
 				break;
 			}
 			eval_children(work, s);
@@ -219,7 +221,8 @@ int get_best_move(Game* g, time_t seconds)
 		printf("Size: %d\n", work->size);
 	}
 
-	print_state(root);
+	//print_state(root);
+	//printf("Depth achieved: %d\n", work->first->state->depth);
 	best = root->best_move->move_col;
 	free_list(work);
 	free_state(root);

@@ -8,12 +8,13 @@ typedef struct Node Node;
 typedef struct List List;
 
 struct State {
-	State*	best_move;
-	List*	children;
-	int	eval;
-	int**	field;
 	Game*	g;
+	List*	children;
 	State*	parent;
+	State*	best_move;
+	int**	field;
+	int	depth;
+	int	eval;
 	int	move_col;
 	int	move_row;
 	int	turn;
@@ -38,9 +39,15 @@ void free_list(List* l);
 
 void l_append(List* l, State* s);
 
+void l_append_sorted(List* l, State* s);
+
 State* l_get(List* l, int index);
 
 State* l_pop_first(List* l);
+
+void l_print(List* l);
+
+void resort_element(List* l, State* s);
 
 List* possible_moves(State* s);
 
