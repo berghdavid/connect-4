@@ -11,8 +11,16 @@ int test()
 
 	g = init_game(7, 6);
 
-        make_move(g, 0);
+        make_move(g, 3);
+        make_move(g, 4);
+        make_move(g, 4);
+        make_move(g, 4);
+        make_move(g, 2);
+        make_move(g, 4);
+        make_move(g, 1);
+        make_move(g, 4);
         s = init_root(g);
+	print_game(g, g->field);
         printf("Eval: %d\n", s->eval);
 	
 	free_state(s);

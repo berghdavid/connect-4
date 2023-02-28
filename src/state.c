@@ -156,7 +156,7 @@ void l_add_n(List* l_from, List* l_to)
 	}
 
 	n = l_from->first;
-	while (n != NULL && abs(n->state->eval) < 99999) {
+	while (n != NULL && abs(n->state->eval) < 9999) {
 		l_append(l_to, n->state);
 		n = n->next;
 	}
@@ -243,6 +243,7 @@ int tree_depth(State* root)
 	depth = 0;
 	s_i = root;
 	while (s_i != NULL && s_i->children != NULL) {
+		print_state(s_i);
 		s_i = s_i->children->first->state;
 		depth++;
 	}

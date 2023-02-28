@@ -53,7 +53,7 @@ int value(int p_1, int p_2)
 		} else if (p_1 == 3) {
 			return 50;
 		} else {
-			return 9999;
+			return 999999;
 		}
 	}
 	if (p_2 == 1) {
@@ -63,7 +63,7 @@ int value(int p_1, int p_2)
 	} else if (p_2 == 3) {
 		return -20;
 	}
-	return -9999;
+	return -999999;
 }
 
 int eval_rows(Game* g, int** field, int row, int col)
@@ -253,11 +253,7 @@ int get_best_move(Game* g, time_t seconds)
 		iterations++;
 	}
 	
-	if (best_state(root) != NULL) {
-		best = best_state(root)->move_col;
-	} else {
-		best = -1;
-	}
+	best = best_state(root)->move_col;
 	printf("Achieved depth %d\n", tree_depth(root));
 
 	free_list(work);
