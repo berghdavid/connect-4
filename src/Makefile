@@ -8,7 +8,7 @@ debug: CFLAGS += -ggdb3
 
 .PHONY: all
 
-PROGS = connect-4
+PROGS = connect-4 test
 
 all: $(PROGS)
 
@@ -21,10 +21,14 @@ run-pb: connect-4
 run-bb: connect-4
 	./connect-4 2
 
+run-test: test
+	./test
+
 debug: connect-4
 	valgrind --leak-check=full --track-origins=yes ./connect-4 2
 
 connect-4: connect-4.o game.o bot.o state.o
+test: test.o game.o bot.o state.o
 
 clean:
 	rm -f *.o $(PROGS)

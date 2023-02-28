@@ -147,7 +147,7 @@ void l_print(List* l)
 	}
 }
 
-void l_add_n(List* l_from, List* l_to)
+void l_add_n(List* l_from, List* l_to, int min_nodes)
 {
 	int	i;
 	Node*	n;
@@ -158,9 +158,9 @@ void l_add_n(List* l_from, List* l_to)
 	}
 
 	n = l_from->first;
-	limit = max(3, n->state->g->cols - n->state->depth);
+	limit = max(min_nodes, n->state->g->cols - n->state->depth);
 	i = 0;
-	while (n != NULL && i < limit && abs(n->state->eval) < limit) {
+	while (n != NULL && i < limit && abs(n->state->eval) < 99999) {
 		l_append(l_to, n->state);
 		n = n->next;
 		i++;
@@ -210,21 +210,15 @@ void print_state(State* s)
 	State*	s_i;
 
 	printf(" --- STATE PRINT BEGIN ---\n");
-	print_game(s->g, s->field);
-	printf("Previous move: [row: %d, col: %d]\n", s->move_row, s->move_col);
-	printf("Evaluation: %d\n", s->eval);
-	printf("Turn: %d\n", s->turn);
-	if (best_state(s) != NULL) {
-		printf("Best move: [%d, %d]\n", best_state(s)->move_row, best_state(s)->move_col);
-	} else {
-		printf("Best move: NULL\n");
-	}
+	//printf("\tPrevious move: [row: %d, col: %d]\n", s->move_row, s->move_col);
+	//printf("\tTurn: %d\n", s->turn);
+	//printf("\tEvaluation: %d\n", s->eval);
 	if (s->children != NULL) {
 		child = s->children->first;
-		printf("Moves:\n");
+		printf("\tMoves:\n");
 		while (child != NULL) {
 			s_i = child->state;
-			printf("\t[%d, %d]: Eval = %d\n", s_i->move_row, s_i->move_col, s_i->eval);
+			printf("\t\t[%d, %d]: Eval = %d\n", s_i->move_row, s_i->move_col, s_i->eval);
 			child = child->next;
 		}
 	}
@@ -254,6 +248,7 @@ int tree_depth(State* root)
 	depth = -1;
 	s_i = root;
 	while (s_i != NULL && s_i->children != NULL) {
+		print_state(s_i);
 		s_i = s_i->children->first->state;
 		depth++;
 	}
@@ -306,13 +301,13 @@ State* init_state(State* parent, int move)
 
 	s->g = parent->g;
 	s->parent = parent;
+	s->children = NULL;
 	s->move_col = move;
 	s->turn = -s->parent->turn;
 
-	s->children = NULL;
-	s->move_row = get_move_row(s);
-	s->field = new_field(s);
 	s->eval = parent->eval;
 	s->depth = parent->depth + 1;
+	s->move_row = get_move_row(s);
+	s->field = new_field(s);
 	return s;
 }
