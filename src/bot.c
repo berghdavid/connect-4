@@ -49,21 +49,21 @@ int value(int p_1, int p_2)
 		if (p_1 == 1) {
 			return 1;
 		} else if (p_1 == 2) {
-			return 4;
+			return 2;
 		} else if (p_1 == 3) {
-			return 50;
+			return 20;
 		} else {
-			return 999999;
+			return 999;
 		}
 	}
 	if (p_2 == 1) {
 		return -1;
 	} else if (p_2 == 2) {
-		return -4;
+		return -2;
 	} else if (p_2 == 3) {
 		return -20;
 	}
-	return -999999;
+	return -999;
 }
 
 int eval_rows(Game* g, int** field, int row, int col)

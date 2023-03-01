@@ -204,10 +204,6 @@ void print_state(State* s)
 	Node*	child;
 	State*	s_i;
 
-	//printf(" --- STATE PRINT BEGIN ---\n");
-	//printf("\tPrevious move: [row: %d, col: %d]\n", s->move_row, s->move_col);
-	//printf("\tTurn: %d\n", s->turn);
-	//printf("\tEvaluation: %d\n", s->eval);
 	if (s->children != NULL) {
 		child = s->children->first;
 		printf("\tMoves:\n");
@@ -217,7 +213,6 @@ void print_state(State* s)
 			child = child->next;
 		}
 	}
-	//printf(" --- STATE PRINT END ---\n");
 }
 
 void free_state(State* s)
@@ -243,7 +238,6 @@ int tree_depth(State* root)
 	depth = 0;
 	s_i = root;
 	while (s_i != NULL && s_i->children != NULL) {
-		print_state(s_i);
 		s_i = s_i->children->first->state;
 		depth++;
 	}
