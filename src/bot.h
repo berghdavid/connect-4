@@ -1,6 +1,7 @@
 #ifndef BOT_H
 #define BOT_H
 
+#include "time.h"
 #include "game.h"
 
 typedef struct State State;
@@ -38,64 +39,56 @@ struct Bot {
 	int		cols;
 };
 
-List* init_list();
+static List* init_list();
 
-void free_list_and_contents(List* l);
+static void free_list_and_contents(List* l);
 
-void free_list(List* l);
+static void free_list(List* l);
 
-void l_append(List* l, State* s);
+static void l_append(List* l, State* s);
 
-void l_append_sorted(List* l, State* s);
+static void l_append_sorted(List* l, State* s);
 
-State* l_get(List* l, int index);
+static State* l_pop_first(List* l);
 
-State* l_pop_first(List* l);
+static void l_add_n(List* l_from, List* l_to);
 
-void l_print(List* l);
+static List* l_sort(List* l);
 
-void l_add_n(List* l_from, List* l_to);
+static List* possible_moves(State* s);
 
-List* l_sort(List* l);
+static State* best_state(State* s);
 
-List* possible_moves(State* s);
+static void free_state(State* s);
 
-State* best_state(State* s);
+static int tree_depth(State* s);
 
-void print_state(State* s);
+static int** clone_field(Bot* b, int** field);
 
-void free_state(State* s);
+static int** new_field(State* s);
 
-int tree_depth(State* s);
+static int get_move_row(State* s);
 
-int** clone_field(Bot* b, int** field);
+static State* init_state(State* parent, int move);
 
-int** new_field(State* s);
+static int eval_field(Bot* g, int** field);
 
-int get_move_row(State* s);
+static Bot* init_bot(Game* g);
 
-State* init_state(State* parent, int move);
+static int value(int p_opp, int p_me);
 
-int eval_field(Bot* g, int** field);
+static int eval_rows(Bot* g, int** field, int row, int col);
 
-Bot* init_bot(Game* g);
+static int eval_cols(Bot* g, int** field, int row, int col);
 
-int value(int p_opp, int p_me);
+static int eval_diags(Bot* g, int** field, int row, int col);
 
-int eval_rows(Bot* g, int** field, int row, int col);
+static int eval_square(Bot* g, int** field, int row, int col);
 
-int eval_cols(Bot* g, int** field, int row, int col);
+static void eval_state(State* s);
 
-int eval_diags(Bot* g, int** field, int row, int col);
+static void reevaluate(State* parent);
 
-int eval_square(Bot* g, int** field, int row, int col);
-
-void eval_state(State* s);
-
-void reevaluate(State* parent);
-
-void eval_children(List* l, State* s);
-
-int get_best_move(Game* g, time_t seconds);
+static void eval_children(List* l, State* s);
 
 #endif

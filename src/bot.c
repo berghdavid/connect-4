@@ -3,11 +3,12 @@
 #include <time.h>
 #include <stdio.h>
 #include "bot.h"
+#include "bot_move.h"
 
 #define min(a, b) (((a) < (b)) ? (a) : (b))
 #define max(a, b) (((a) > (b)) ? (a) : (b))
 
-List* init_list()
+static List* init_list()
 {
 	List*	l;
 	l = malloc(sizeof(List));
@@ -17,7 +18,7 @@ List* init_list()
 	return l;
 }
 
-void free_list_and_contents(List* l)
+static void free_list_and_contents(List* l)
 {
 	Node*	child;
 	Node*	next;
@@ -32,7 +33,7 @@ void free_list_and_contents(List* l)
 	free(l);
 }
 
-void free_list(List* l)
+static void free_list(List* l)
 {
 	Node*	child;
 	Node*	next;
@@ -46,7 +47,7 @@ void free_list(List* l)
 	free(l);
 }
 
-void l_append(List* l, State* s)
+static void l_append(List* l, State* s)
 {
 	Node*	n;
 
@@ -62,7 +63,7 @@ void l_append(List* l, State* s)
 	l->size++;
 }
 
-void l_append_sorted(List* l, State* s)
+static void l_append_sorted(List* l, State* s)
 {
 	Node*	n_i;
 	Node*	n;
@@ -103,22 +104,7 @@ void l_append_sorted(List* l, State* s)
 	l->size++;
 }
 
-State* l_get(List* l, int index)
-{
-	Node*	n;
-	int	i;
-
-	if (index < 0 || l->size <= index) {
-		return NULL;
-	}
-	n = l->first;
-	for (i = 0; i < index; i++) {
-		n = n->next;
-	}
-	return n->state;
-}
-
-State* l_pop_first(List* l)
+static State* l_pop_first(List* l)
 {
 	Node*	n;
 	State*	s;
@@ -137,19 +123,7 @@ State* l_pop_first(List* l)
 	return s;
 }
 
-void l_print(List* l)
-{
-	Node*	n;
-
-	n = l->first;
-	printf("List of size %d for turn %d\n", l->size, l->first->state->turn);
-	while (n != NULL) {
-		printf("\t%d: %d\n", n->state->move_col, n->state->eval);
-		n = n->next;
-	}
-}
-
-void l_add_n(List* l_from, List* l_to)
+static void l_add_n(List* l_from, List* l_to)
 {
 	Node*	n;
 
@@ -164,7 +138,7 @@ void l_add_n(List* l_from, List* l_to)
 	}
 }
 
-List* l_sort(List* l)
+static List* l_sort(List* l)
 {
 	List*	sorted;
 	State*	child;
@@ -179,7 +153,7 @@ List* l_sort(List* l)
 	return sorted;
 }
 
-List* possible_moves(State* s)
+static List* possible_moves(State* s)
 {
 	List*	list;
 	int	i;
@@ -193,7 +167,7 @@ List* possible_moves(State* s)
 	return list;
 }
 
-State* best_state(State* s)
+static State* best_state(State* s)
 {
 	if (s->children != NULL && s->children->size > 0) {
 		return s->children->first->state;
@@ -201,23 +175,7 @@ State* best_state(State* s)
 	return NULL;
 }
 
-void print_state(State* s)
-{
-	Node*	child;
-	State*	s_i;
-
-	if (s->children != NULL) {
-		child = s->children->first;
-		printf("\tMoves:\n");
-		while (child != NULL) {
-			s_i = child->state;
-			printf("\t\t[%d, %d]: Eval = %d\n", s_i->move_row, s_i->move_col, s_i->eval);
-			child = child->next;
-		}
-	}
-}
-
-void free_state(State* s)
+static void free_state(State* s)
 {
 	int	i;
 
@@ -232,7 +190,7 @@ void free_state(State* s)
 	free(s);
 }
 
-int tree_depth(State* root)
+static int tree_depth(State* root)
 {
 	int	depth;
 	State*	s_i;
@@ -246,7 +204,7 @@ int tree_depth(State* root)
 	return depth;
 }
 
-int** clone_field(Bot* g, int** old_field)
+static int** clone_field(Bot* g, int** old_field)
 {
 	int**	new_f;
 	int	i;
@@ -262,7 +220,7 @@ int** clone_field(Bot* g, int** old_field)
 	return new_f;
 }
 
-int** new_field(State* s)
+static int** new_field(State* s)
 {
 	int**	new_f;
 	new_f = clone_field(s->b, s->parent->field);
@@ -270,7 +228,7 @@ int** new_field(State* s)
 	return new_f;
 }
 
-int get_move_row(State* s)
+static int get_move_row(State* s)
 {
 	int	row;
 	assert(s->parent->field[0][s->move_col] == 0);
@@ -285,7 +243,7 @@ int get_move_row(State* s)
 	return row;
 }
 
-State* init_state(State* parent, int move)
+static State* init_state(State* parent, int move)
 {
 	State*	s;
 	s = malloc(sizeof(State));
@@ -303,7 +261,7 @@ State* init_state(State* parent, int move)
 	return s;
 }
 
-int eval_field(Bot* g, int** field)
+static int eval_field(Bot* g, int** field)
 {
 	int	sum;
 	int	i;
@@ -319,7 +277,7 @@ int eval_field(Bot* g, int** field)
 	return sum;
 }
 
-Bot* init_bot(Game* g)
+static Bot* init_bot(Game* g)
 {
 	Bot*	b;
 	State*	root;
@@ -344,7 +302,7 @@ Bot* init_bot(Game* g)
 	return b;
 }
 
-int value(int p_1, int p_2)
+static int value(int p_1, int p_2)
 {
 	if ((p_1 > 0 && p_2 > 0) || (p_1 == 0 && p_2 == 0)) {
 		return 0;
@@ -370,7 +328,7 @@ int value(int p_1, int p_2)
 	return -99999;
 }
 
-int eval_rows(Bot* g, int** field, int row, int col)
+static int eval_rows(Bot* g, int** field, int row, int col)
 {
 	int	sum;
 	int	i;
@@ -399,7 +357,7 @@ int eval_rows(Bot* g, int** field, int row, int col)
 	return sum;
 }
 
-int eval_cols(Bot* g, int** field, int row, int col)
+static int eval_cols(Bot* g, int** field, int row, int col)
 {
 	int	sum;
 	int	i;
@@ -427,7 +385,7 @@ int eval_cols(Bot* g, int** field, int row, int col)
 	return sum;
 }
 
-int eval_diags(Bot* g, int** field, int row, int col)
+static int eval_diags(Bot* g, int** field, int row, int col)
 {
 	int	sum;
 	int	i;
@@ -472,7 +430,7 @@ int eval_diags(Bot* g, int** field, int row, int col)
 	return sum;
 }
 
-int eval_square(Bot* g, int** field, int row, int col)
+static int eval_square(Bot* g, int** field, int row, int col)
 {
 	if (field[row][col] == 0) {
 		return 0;
@@ -481,12 +439,12 @@ int eval_square(Bot* g, int** field, int row, int col)
 		eval_diags(g, field, row, col);
 }
 
-void eval_state(State* s)
+static void eval_state(State* s)
 {
 	s->eval = eval_field(s->b, s->field);
 }
 
-void reevaluate(State* state)
+static void reevaluate(State* state)
 {
 	int	old_eval;
 
@@ -501,7 +459,7 @@ void reevaluate(State* state)
 	}
 }
 
-void eval_children(List* work, State* s)
+static void eval_children(List* work, State* s)
 {
 	List*	sorted;
 	State*	child;

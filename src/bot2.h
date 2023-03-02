@@ -4,15 +4,15 @@
 #include <time.h>
 #include "game.h"
 
-typedef struct State_b2 State_b2;
-typedef struct Node_b2 Node_b2;
-typedef struct List_b2 List_b2;
-typedef struct Bot_b2 Bot_b2;
+typedef struct State State;
+typedef struct Node Node;
+typedef struct List List;
+typedef struct Bot Bot;
 
-struct State_b2 {
-	Bot_b2*	b;
-	List_b2*	children;
-	State_b2*	parent;
+struct State {
+	Bot*	b;
+	List*	children;
+	State*	parent;
 	int**	field;
 	int	depth;
 	int	base_eval;
@@ -22,81 +22,75 @@ struct State_b2 {
 	int	turn;
 };
 
-struct Node_b2 {
-	State_b2*	state;
-	Node_b2*	next;
+struct Node {
+	State*	state;
+	Node*	next;
 };
 
-struct List_b2 {
-	Node_b2*	first;
-	Node_b2*	last;
+struct List {
+	Node*	first;
+	Node*	last;
 	int	size;
 };
 
-struct Bot_b2 {
-	State_b2*		root;
+struct Bot {
+	State*		root;
 	int		rows;
 	int		cols;
 };
 
-List_b2* init_list_b2();
+static List* init_list();
 
-void free_list_and_contents_b2(List_b2* l);
+static void free_list_and_contents(List* l);
 
-void free_list_b2(List_b2* l);
+static void free_list(List* l);
 
-void l_append_b2(List_b2* l, State_b2* s);
+static void l_append(List* l, State* s);
 
-void l_append_sorted_b2(List_b2* l, State_b2* s);
+static void l_append_sorted(List* l, State* s);
 
-State_b2* l_get_b2(List_b2* l, int index);
+static State* l_pop_first(List* l);
 
-State_b2* l_pop_first_b2(List_b2* l);
+static void l_add_n(List* l_from, List* l_to);
 
-void l_print_b2(List_b2* l);
+static List* l_sort(List* l);
 
-void l_add_n_b2(List_b2* l_from, List_b2* l_to);
+static List* possible_moves(State* s);
 
-List_b2* l_sort_b2(List_b2* l);
+static State* best_state(State* s);
 
-List_b2* possible_moves_b2(State_b2* s);
+static void print_state(State* s);
 
-State_b2* best_state_b2(State_b2* s);
+static void free_state(State* s);
 
-void print_state_b2(State_b2* s);
+static int tree_depth(State* s);
 
-void free_state_b2(State_b2* s);
+static int** clone_field(Bot* b, int** field);
 
-int tree_depth_b2(State_b2* s);
+static int** new_field(State* s);
 
-int** clone_field_b2(Bot_b2* b, int** field);
+static int get_move_row(State* s);
 
-int** new_field_b2(State_b2* s);
+static State* init_state(State* parent, int move);
 
-int get_move_row_b2(State_b2* s);
+static int eval_field(Bot* g, int** field);
 
-State_b2* init_state_b2(State_b2* parent, int move);
+static Bot* init_bot(Game* g);
 
-int eval_field_b2(Bot_b2* g, int** field);
+static int value(int p_opp, int p_me);
 
-Bot_b2* init_bot_b2(Game* g);
+static int eval_rows(Bot* g, int** field, int row, int col);
 
-int value_b2(int p_opp, int p_me);
+static int eval_cols(Bot* g, int** field, int row, int col);
 
-int eval_rows_b2(Bot_b2* g, int** field, int row, int col);
+static int eval_diags(Bot* g, int** field, int row, int col);
 
-int eval_cols_b2(Bot_b2* g, int** field, int row, int col);
+static int eval_square(Bot* g, int** field, int row, int col);
 
-int eval_diags_b2(Bot_b2* g, int** field, int row, int col);
+static void eval_state(State* s);
 
-int eval_square_b2(Bot_b2* g, int** field, int row, int col);
+static void reevaluate(State* parent);
 
-void eval_state_b2(State_b2* s);
-
-void reevaluate_b2(State_b2* parent);
-
-void eval_children_b2(List_b2* l, State_b2* s);
-
-int get_best_move_b2(Game* g, time_t seconds);
+static void eval_children(List* l, State* s);
 
 #endif

@@ -2,40 +2,42 @@
 #include <stdlib.h>
 #include <time.h>
 #include <stdio.h>
+#include "game.h"
 #include "bot2.h"
+#include "bot2_move.h"
 
 #define min(a, b) (((a) < (b)) ? (a) : (b))
 #define max(a, b) (((a) > (b)) ? (a) : (b))
 
-List_b2* init_list_b2()
+static List* init_list()
 {
-	List_b2*	l;
-	l = malloc(sizeof(List_b2));
+	List*	l;
+	l = malloc(sizeof(List));
 	l->first = NULL;
 	l->last = NULL;
 	l->size = 0;
 	return l;
 }
 
-void free_list_and_contents_b2(List_b2* l)
+static void free_list_and_contents(List* l)
 {
-	Node_b2*	child;
-	Node_b2*	next;
+	Node*	child;
+	Node*	next;
 
 	child = l->first;
 	while (child != NULL) {
 		next = child->next;
-		free_state_b2(child->state);
+		free_state(child->state);
 		free(child);
 		child = next;
 	}
 	free(l);
 }
 
-void free_list_b2(List_b2* l)
+static void free_list(List* l)
 {
-	Node_b2*	child;
-	Node_b2*	next;
+	Node*	child;
+	Node*	next;
 
 	child = l->first;
 	while (child != NULL) {
@@ -46,11 +48,11 @@ void free_list_b2(List_b2* l)
 	free(l);
 }
 
-void l_append_b2(List_b2* l, State_b2* s)
+static void l_append(List* l, State* s)
 {
-	Node_b2*	n;
+	Node*	n;
 
-	n = malloc(sizeof(Node_b2));
+	n = malloc(sizeof(Node));
 	n->state = s;
 	n->next = NULL;
 	if (l->last == NULL) {
@@ -62,14 +64,14 @@ void l_append_b2(List_b2* l, State_b2* s)
 	l->size++;
 }
 
-void l_append_sorted_b2(List_b2* l, State_b2* s)
+static void l_append_sorted(List* l, State* s)
 {
-	Node_b2*	n_i;
-	Node_b2*	n;
+	Node*	n_i;
+	Node*	n;
 	int	val;
 	int	turn;
 
-	n = malloc(sizeof(Node_b2));
+	n = malloc(sizeof(Node));
 	n->state = s;
 	n->next = NULL;
 	turn = -s->turn;
@@ -103,25 +105,10 @@ void l_append_sorted_b2(List_b2* l, State_b2* s)
 	l->size++;
 }
 
-State_b2* l_get_b2(List_b2* l, int index)
+static State* l_pop_first(List* l)
 {
-	Node_b2*	n;
-	int	i;
-
-	if (index < 0 || l->size <= index) {
-		return NULL;
-	}
-	n = l->first;
-	for (i = 0; i < index; i++) {
-		n = n->next;
-	}
-	return n->state;
-}
-
-State_b2* l_pop_first_b2(List_b2* l)
-{
-	Node_b2*	n;
-	State_b2*	s;
+	Node*	n;
+	State*	s;
 
 	n = l->first;
 	if (n == NULL) {
@@ -137,21 +124,9 @@ State_b2* l_pop_first_b2(List_b2* l)
 	return s;
 }
 
-void l_print_b2(List_b2* l)
+static void l_add_n(List* l_from, List* l_to)
 {
-	Node_b2*	n;
-
-	n = l->first;
-	printf("List_b2 of size %d for turn %d\n", l->size, l->first->state->turn);
-	while (n != NULL) {
-		printf("\t%d: %d\n", n->state->move_col, n->state->eval);
-		n = n->next;
-	}
-}
-
-void l_add_n_b2(List_b2* l_from, List_b2* l_to)
-{
-	Node_b2*	n;
+	Node*	n;
 
 	if (l_from->first == NULL) {
 		return;
@@ -159,41 +134,41 @@ void l_add_n_b2(List_b2* l_from, List_b2* l_to)
 
 	n = l_from->first;
 	while (n != NULL && abs(n->state->eval) < 999) {
-		l_append_b2(l_to, n->state);
+		l_append(l_to, n->state);
 		n = n->next;
 	}
 }
 
-List_b2* l_sort_b2(List_b2* l)
+static List* l_sort(List* l)
 {
-	List_b2*	sorted;
-	State_b2*	child;
+	List*	sorted;
+	State*	child;
 
-	sorted = init_list_b2();
-	child = l_pop_first_b2(l);
+	sorted = init_list();
+	child = l_pop_first(l);
 	while (child != NULL) {
-		l_append_sorted_b2(sorted, child);
-		child = l_pop_first_b2(l);
+		l_append_sorted(sorted, child);
+		child = l_pop_first(l);
 	}
 	free(l);
 	return sorted;
 }
 
-List_b2* possible_moves_b2(State_b2* s)
+static List* possible_moves(State* s)
 {
-	List_b2*	list;
+	List*	list;
 	int	i;
 
-	list = init_list_b2();
+	list = init_list();
 	for (i = 0; i < s->b->cols; i++) {
 		if (s->field[0][i] == 0) {
-			l_append_b2(list, init_state_b2(s, i));
+			l_append(list, init_state(s, i));
 		}
 	}
 	return list;
 }
 
-State_b2* best_state_b2(State_b2* s)
+static State* best_state(State* s)
 {
 	if (s->children != NULL && s->children->size > 0) {
 		return s->children->first->state;
@@ -201,10 +176,10 @@ State_b2* best_state_b2(State_b2* s)
 	return NULL;
 }
 
-void print_state_b2(State_b2* s)
+static void print_state(State* s)
 {
-	Node_b2*	child;
-	State_b2*	s_i;
+	Node*	child;
+	State*	s_i;
 
 	if (s->children != NULL) {
 		child = s->children->first;
@@ -217,7 +192,7 @@ void print_state_b2(State_b2* s)
 	}
 }
 
-void free_state_b2(State_b2* s)
+static void free_state(State* s)
 {
 	int	i;
 
@@ -227,15 +202,15 @@ void free_state_b2(State_b2* s)
 	free(s->field);
 
 	if (s->children != NULL) {
-		free_list_and_contents_b2(s->children);
+		free_list_and_contents(s->children);
 	}
 	free(s);
 }
 
-int tree_depth_b2(State_b2* root)
+static int tree_depth(State* root)
 {
 	int	depth;
-	State_b2*	s_i;
+	State*	s_i;
 
 	depth = 0;
 	s_i = root;
@@ -246,7 +221,7 @@ int tree_depth_b2(State_b2* root)
 	return depth;
 }
 
-int** clone_field_b2(Bot_b2* g, int** old_field)
+static int** clone_field(Bot* g, int** old_field)
 {
 	int**	new_f;
 	int	i;
@@ -262,15 +237,15 @@ int** clone_field_b2(Bot_b2* g, int** old_field)
 	return new_f;
 }
 
-int** new_field_b2(State_b2* s)
+static int** new_field(State* s)
 {
 	int**	new_f;
-	new_f = clone_field_b2(s->b, s->parent->field);
+	new_f = clone_field(s->b, s->parent->field);
 	new_f[s->move_row][s->move_col] = -s->turn;
 	return new_f;
 }
 
-int get_move_row_b2(State_b2* s)
+static int get_move_row(State* s)
 {
 	int	row;
 	assert(s->parent->field[0][s->move_col] == 0);
@@ -285,10 +260,10 @@ int get_move_row_b2(State_b2* s)
 	return row;
 }
 
-State_b2* init_state_b2(State_b2* parent, int move)
+static State* init_state(State* parent, int move)
 {
-	State_b2*	s;
-	s = malloc(sizeof(State_b2));
+	State*	s;
+	s = malloc(sizeof(State));
 
 	s->b = parent->b;
 	s->parent = parent;
@@ -298,12 +273,12 @@ State_b2* init_state_b2(State_b2* parent, int move)
 	s->base_eval = parent->base_eval;
 	s->eval = parent->base_eval;
 	s->depth = parent->depth + 1;
-	s->move_row = get_move_row_b2(s);
-	s->field = new_field_b2(s);
+	s->move_row = get_move_row(s);
+	s->field = new_field(s);
 	return s;
 }
 
-int eval_field_b2(Bot_b2* g, int** field)
+static int eval_field(Bot* g, int** field)
 {
 	int	sum;
 	int	i;
@@ -312,20 +287,20 @@ int eval_field_b2(Bot_b2* g, int** field)
 	sum = 0;
 	for (i = 0; i < g->rows; i++) {
 		for (j = 0; j < g->cols; j++) {
-			sum += eval_square_b2(g, field, i, j);
+			sum += eval_square(g, field, i, j);
 		}
 	}
 
 	return sum;
 }
 
-Bot_b2* init_bot_b2(Game* g)
+static Bot* init_bot(Game* g)
 {
-	Bot_b2*	b;
-	State_b2*	root;
+	Bot*	b;
+	State*	root;
 
-	b = malloc(sizeof(Bot_b2));
-	root = malloc(sizeof(State_b2));
+	b = malloc(sizeof(Bot));
+	root = malloc(sizeof(State));
 
 	b->root = root;
 	b->rows = g->rows;
@@ -338,13 +313,13 @@ Bot_b2* init_bot_b2(Game* g)
 	root->move_row = -1;
 	root->turn = g->turn;
 	root->children = NULL;
-	root->field = clone_field_b2(b, g->field);
-	root->base_eval = eval_field_b2(b, root->field);
+	root->field = clone_field(b, g->field);
+	root->base_eval = eval_field(b, root->field);
 	root->eval = root->base_eval;
 	return b;
 }
 
-int value_b2(int p_1, int p_2)
+static int value(int p_1, int p_2)
 {
 	if ((p_1 > 0 && p_2 > 0) || (p_1 == 0 && p_2 == 0)) {
 		return 0;
@@ -370,7 +345,7 @@ int value_b2(int p_1, int p_2)
 	return -99999;
 }
 
-int eval_rows_b2(Bot_b2* g, int** field, int row, int col)
+static int eval_rows(Bot* g, int** field, int row, int col)
 {
 	int	sum;
 	int	i;
@@ -393,13 +368,13 @@ int eval_rows_b2(Bot_b2* g, int** field, int row, int col)
 				p_2++;
 			}
 		}
-		sum += value_b2(p_1, p_2);
+		sum += value(p_1, p_2);
 	}
 
 	return sum;
 }
 
-int eval_cols_b2(Bot_b2* g, int** field, int row, int col)
+static int eval_cols(Bot* g, int** field, int row, int col)
 {
 	int	sum;
 	int	i;
@@ -422,12 +397,12 @@ int eval_cols_b2(Bot_b2* g, int** field, int row, int col)
 				p_2++;
 			}
 		}
-		sum += value_b2(p_1, p_2);
+		sum += value(p_1, p_2);
 	}
 	return sum;
 }
 
-int eval_diags_b2(Bot_b2* g, int** field, int row, int col)
+static int eval_diags(Bot* g, int** field, int row, int col)
 {
 	int	sum;
 	int	i;
@@ -451,7 +426,7 @@ int eval_diags_b2(Bot_b2* g, int** field, int row, int col)
 				p_2++;
 			}
 		}
-		sum += value_b2(p_1, p_2);
+		sum += value(p_1, p_2);
 	}
 
 	/* Diagonally up */
@@ -467,27 +442,27 @@ int eval_diags_b2(Bot_b2* g, int** field, int row, int col)
 				p_2++;
 			}
 		}
-		sum += value_b2(p_1, p_2);
+		sum += value(p_1, p_2);
 	}
 	return sum;
 }
 
-int eval_square_b2(Bot_b2* g, int** field, int row, int col)
+static int eval_square(Bot* g, int** field, int row, int col)
 {
 	if (field[row][col] == 0) {
 		return 0;
 	}
-	return eval_rows_b2(g, field, row, col) + eval_cols_b2(g, field, row, col) +
-		eval_diags_b2(g, field, row, col);
+	return eval_rows(g, field, row, col) + eval_cols(g, field, row, col) +
+		eval_diags(g, field, row, col);
 }
 
-void eval_state_b2(State_b2* s)
+static void eval_state(State* s)
 {
-	s->base_eval += eval_square_b2(s->b, s->field, s->move_row, s->move_col);
+	s->base_eval += eval_square(s->b, s->field, s->move_row, s->move_col);
 	s->eval = s->base_eval;
 }
 
-void reevaluate_b2(State_b2* state)
+static void reevaluate(State* state)
 {
 	int	old_eval;
 
@@ -495,77 +470,77 @@ void reevaluate_b2(State_b2* state)
 		return;
 	}
 	old_eval = state->eval;
-	state->children = l_sort_b2(state->children);
-	state->eval = best_state_b2(state)->eval;
+	state->children = l_sort(state->children);
+	state->eval = best_state(state)->eval;
 	if (old_eval != state->eval) {
-		reevaluate_b2(state->parent);
+		reevaluate(state->parent);
 	}
 }
 
-void eval_children_b2(List_b2* work, State_b2* s)
+static void eval_children(List* work, State* s)
 {
-	List_b2*	sorted;
-	State_b2*	child;
+	List*	sorted;
+	State*	child;
 
-	s->children = possible_moves_b2(s);
+	s->children = possible_moves(s);
 	if (s->children->size == 0) {
 		/* No more available moves */
 		return;
 	}
-	sorted = init_list_b2();
-	child = l_pop_first_b2(s->children);
+	sorted = init_list();
+	child = l_pop_first(s->children);
 	while (child != NULL) {
-		eval_state_b2(child);
-		l_append_sorted_b2(sorted, child);
-		child = l_pop_first_b2(s->children);
+		eval_state(child);
+		l_append_sorted(sorted, child);
+		child = l_pop_first(s->children);
 	}
 	free(s->children);
 	s->children = sorted;
-	l_add_n_b2(s->children, work);
-	s->eval = best_state_b2(s)->eval;
-	reevaluate_b2(s->parent);
+	l_add_n(s->children, work);
+	s->eval = best_state(s)->eval;
+	reevaluate(s->parent);
 }
 
-int get_best_move_b2(Game* g, time_t seconds)
+int get_best_move_2(Game* g, time_t seconds)
 {
-	Bot_b2*	b;
-	List_b2*	work;
-	State_b2*	s;
+	Bot*	b;
+	List*	work;
+	State*	s;
 	time_t	start;
 	int	best;
 	int	batch;
 	int	batch_size;
 	int	iterations;
 
-	b = init_bot_b2(g);
+	b = init_bot(g);
 
 	start = time(NULL);
 	batch_size = 10000;
 	iterations = 0;
-	work = init_list_b2();
-	l_append_b2(work, b->root);
+	work = init_list();
+	l_append(work, b->root);
 
 	while (work->first != NULL && time(NULL) < start + seconds) {
 		for (batch = 0; batch < batch_size; batch++) {
-			s = l_pop_first_b2(work);
+			s = l_pop_first(work);
 			if (s == NULL) {
 				break;
 			}
-			eval_children_b2(work, s);
+			eval_children(work, s);
 		}
 		iterations++;
 	}
 
 	printf("Evaluated nodes: %d\n", ((iterations - 1) * batch_size) + batch);
-	printf("Achieved depth %d\n", tree_depth_b2(b->root));
-	s = best_state_b2(b->root);
+	printf("Achieved depth %d\n", tree_depth(b->root));
+	s = best_state(b->root);
 	best = -1;
 	if (s != NULL) {
 		best = s->move_col;
 	}
 
-	free_list_b2(work);
-	free_state_b2(b->root);
+	free_list(work);
+	free_state(b->root);
 	free(b);
 	return best;
 }
