@@ -6,9 +6,14 @@
 typedef struct State State;
 typedef struct Node Node;
 typedef struct List List;
+typedef struct Bot Bot;
+typedef enum {
+	V1,
+	V2
+} BotVersion;
 
 struct State {
-	Game*	g;
+	Bot*	b;
 	List*	children;
 	State*	parent;
 	int**	field;
@@ -28,6 +33,14 @@ struct List {
 	Node*	first;
 	Node*	last;
 	int	size;
+};
+
+struct Bot {
+	BotVersion	v;
+	State*		root;
+	int		turn;
+	int		rows;
+	int		cols;
 };
 
 List* init_list();
@@ -60,7 +73,7 @@ void free_state(State* s);
 
 int tree_depth(State* s);
 
-int** clone_field(Game* g, int** field);
+int** clone_field(Bot* b, int** field);
 
 int** new_field(State* s);
 

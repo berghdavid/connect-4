@@ -7,7 +7,7 @@
 #define min(a, b) (((a) < (b)) ? (a) : (b))
 #define max(a, b) (((a) > (b)) ? (a) : (b))
 
-int eval_field(Game* g, int** field)
+int eval_field(Bot* g, int** field)
 {
 	int	sum;
 	int	i;
@@ -23,21 +23,30 @@ int eval_field(Game* g, int** field)
 	return sum;
 }
 
-State* init_root(Game* g)
+Bot* init_bot(Game* g, BotVersion v)
 {
-	State*	s;
-	s = malloc(sizeof(State));
-	s->depth = 0;
-	s->g = g;
-	s->parent = NULL;
-	s->move_col = -1;
-	s->move_row = -1;
-	s->turn = g->turn;
-	s->children = NULL;
+	Bot*	b;
+	State*	root;
 
-	s->field = clone_field(g, g->field);
-	s->eval = eval_field(g, s->field);
-	return s;
+	b = malloc(sizeof(Bot));
+	root = malloc(sizeof(State));
+
+	b->turn = g->turn;
+	b->root = root;
+	b->v = v;
+	b->rows = g->rows;
+	b->cols = g->cols;
+
+	root->b = b;
+	root->depth = 0;
+	root->parent = NULL;
+	root->move_col = -1;
+	root->move_row = -1;
+	root->turn = g->turn;
+	root->children = NULL;
+	root->field = clone_field(b, g->field);
+	root->eval = eval_field(b, root->field);
+	return b;
 }
 
 int value(int p_1, int p_2)
@@ -66,7 +75,7 @@ int value(int p_1, int p_2)
 	return -99999;
 }
 
-int eval_rows(Game* g, int** field, int row, int col)
+int eval_rows(Bot* g, int** field, int row, int col)
 {
 	int	sum;
 	int	i;
@@ -95,7 +104,7 @@ int eval_rows(Game* g, int** field, int row, int col)
 	return sum;
 }
 
-int eval_cols(Game* g, int** field, int row, int col)
+int eval_cols(Bot* g, int** field, int row, int col)
 {
 	int	sum;
 	int	i;
@@ -123,7 +132,7 @@ int eval_cols(Game* g, int** field, int row, int col)
 	return sum;
 }
 
-int eval_diags(Game* g, int** field, int row, int col)
+int eval_diags(Bot* g, int** field, int row, int col)
 {
 	int	sum;
 	int	i;
@@ -168,7 +177,7 @@ int eval_diags(Game* g, int** field, int row, int col)
 	return sum;
 }
 
-int eval_square(Game* g, int** field, int row, int col)
+int eval_square(Bot* g, int** field, int row, int col)
 {
 	if (field[row][col] == 0) {
 		return 0;
@@ -179,7 +188,7 @@ int eval_square(Game* g, int** field, int row, int col)
 
 void eval_state(State* s)
 {
-	s->eval = eval_field(s->g, s->field);
+	s->eval = eval_field(s->b, s->field);
 	/*
 	s->eval += eval_square(s->g, s->field, s->move_row, s->move_col);
 	*/
@@ -224,25 +233,26 @@ void eval_children(List* work, State* s)
 	reevaluate(s->parent);
 }
 
-int get_best_move(Game* g, time_t seconds)
+int get_best_move(Game* g, BotVersion v, time_t seconds)
 {
+	Bot*	b;
 	List*	work;
-	State*	root;
 	State*	s;
-	time_t	stamp;
+	time_t	start;
 	int	best;
 	int	batch;
 	int	batch_size;
 	int	iterations;
 
-	stamp = time(NULL);
+	b = init_bot(g, v);
+
+	start = time(NULL);
 	batch_size = 2801;
 	iterations = 0;
 	work = init_list();
-	root = init_root(g);
-	l_append(work, root);
+	l_append(work, b->root);
 
-	while (work->first != NULL && time(NULL) < stamp + seconds) {
+	while (work->first != NULL && time(NULL) < start + seconds) {
 		for (batch = 0; batch < batch_size; batch++) {
 			s = l_pop_first(work);
 			if (s == NULL) {
@@ -253,14 +263,15 @@ int get_best_move(Game* g, time_t seconds)
 		iterations++;
 	}
 
-	printf("Achieved depth %d\n", tree_depth(root));
-	s = best_state(root);
+	printf("Achieved depth %d\n", tree_depth(b->root));
+	s = best_state(b->root);
 	best = -1;
 	if (s != NULL) {
 		best = s->move_col;
 	}
 
 	free_list(work);
-	free_state(root);
+	free_state(b->root);
+	free(b);
 	return best;
 }

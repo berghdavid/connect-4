@@ -183,7 +183,7 @@ List* possible_moves(State* s)
 	int	i;
 
 	list = init_list();
-	for (i = 0; i < s->g->cols; i++) {
+	for (i = 0; i < s->b->cols; i++) {
 		if (s->field[0][i] == 0) {
 			l_append(list, init_state(s, i));
 		}
@@ -219,7 +219,7 @@ void free_state(State* s)
 {
 	int	i;
 
-	for (i = 0; i < s->g->rows; i++) {
+	for (i = 0; i < s->b->rows; i++) {
 		free(s->field[i]);
 	}
 	free(s->field);
@@ -244,7 +244,7 @@ int tree_depth(State* root)
 	return depth;
 }
 
-int** clone_field(Game* g, int** old_field)
+int** clone_field(Bot* g, int** old_field)
 {
 	int**	new_f;
 	int	i;
@@ -263,7 +263,7 @@ int** clone_field(Game* g, int** old_field)
 int** new_field(State* s)
 {
 	int**	new_f;
-	new_f = clone_field(s->g, s->parent->field);
+	new_f = clone_field(s->b, s->parent->field);
 	new_f[s->move_row][s->move_col] = -s->turn;
 	return new_f;
 }
@@ -274,7 +274,7 @@ int get_move_row(State* s)
 	assert(s->parent->field[0][s->move_col] == 0);
 
 	row = 0;
-	while (row < s->g->rows - 1) {
+	while (row < s->b->rows - 1) {
 		if (s->parent->field[row + 1][s->move_col] != 0) {
 			break;
 		}
@@ -288,7 +288,7 @@ State* init_state(State* parent, int move)
 	State*	s;
 	s = malloc(sizeof(State));
 
-	s->g = parent->g;
+	s->b = parent->b;
 	s->parent = parent;
 	s->children = NULL;
 	s->move_col = move;
