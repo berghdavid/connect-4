@@ -253,7 +253,6 @@ int get_best_move(Game* g, time_t seconds)
 		iterations++;
 	}
 
-	print_state(root);
 	printf("Achieved depth %d\n", tree_depth(root));
 	s = best_state(root);
 	best = -1;
