@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include "game.h"
 
-Game* init_game(int cols, int rows)
+Game* init_game(int rows, int cols)
 {
 	Game*	g;
 	int	i;
@@ -30,6 +30,19 @@ void free_game(Game* g)
 	}
 	free(g->field);
 	free(g);
+}
+
+void reset_game(Game* g)
+{
+	int	i;
+	int	j;
+
+	g->turn = 1;
+	for (i = 0; i < g->rows; i++) {
+		for (j = 0; j < g->cols; j++) {
+			g->field[i][j] = 0;
+		}
+	}
 }
 
 void print_game(Game* g, int** field)

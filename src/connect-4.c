@@ -29,7 +29,7 @@ int play_game(InputType p1, InputType p2)
 	int	fails;
 	int	round;
 
-	g = init_game(7, 6);
+	g = init_game(6, 7);
 	fails = 0;
 	round = 0;
 	while (1) {

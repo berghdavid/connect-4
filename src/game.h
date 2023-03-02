@@ -13,10 +13,10 @@ struct Game {
 /**
  * @brief Initialize the playing board.
  * 
+ * @param rows The number of rows in the playing field.
  * @param cols The number of columns in the playing field.
- * @param cols The number of rows in the playing field.
  */
-Game* init_game(int cols, int rows);
+Game* init_game(int rows, int cols);
 
 /**
  * @brief Free the memory allocated for the playing board.
@@ -24,6 +24,13 @@ Game* init_game(int cols, int rows);
  * @param g The game being played.
  */
 void free_game(Game* g);
+
+/**
+ * @brief Reset the field and turn of the game.
+ * 
+ * @param g The game to reset.
+ */
+void reset_game(Game* g);
 
 /**
  * @brief Print the playing board.
