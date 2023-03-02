@@ -30,6 +30,7 @@
 
 # Executables
 src/connect-4
+src/test
 *.exe
 *.out
 *.app
