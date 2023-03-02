@@ -27,8 +27,8 @@ run-test: test
 debug: connect-4
 	valgrind --leak-check=full --track-origins=yes ./connect-4 2
 
-connect-4: connect-4.o game.o bot.o bot2.o state.o
-test: test.o game.o bot.o state.o
+connect-4: connect-4.o game.o bot.o bot2.o
+test: test.o game.o bot.o
 
 clean:
 	rm -f *.o $(PROGS)
