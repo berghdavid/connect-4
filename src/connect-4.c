@@ -3,6 +3,7 @@
 #include "connect-4.h"
 #include "game.h"
 #include "bot.h"
+#include "bot2.h"
 
 int get_input(Game* g, InputType type)
 {
@@ -15,9 +16,9 @@ int get_input(Game* g, InputType type)
 	} else if (type == BOT) {
 		printf("Player %d's turn:\n", g->turn);
 		if (g->turn == 1) {
-			input = get_best_move(g, V1, 1);
+			input = get_best_move(g, 1);
 		} else {
-			input = get_best_move(g, V2, 1);
+			input = get_best_move_b2(g, 1);
 		}
 	}
 	printf("Selected move: %d\n", input);

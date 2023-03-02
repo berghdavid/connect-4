@@ -293,8 +293,8 @@ State* init_state(State* parent, int move)
 	s->children = NULL;
 	s->move_col = move;
 	s->turn = -s->parent->turn;
-
-	s->eval = parent->eval;
+	s->base_eval = parent->base_eval;
+	s->eval = parent->base_eval;
 	s->depth = parent->depth + 1;
 	s->move_row = get_move_row(s);
 	s->field = new_field(s);

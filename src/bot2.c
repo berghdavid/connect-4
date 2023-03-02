@@ -7,7 +7,7 @@
 #define min(a, b) (((a) < (b)) ? (a) : (b))
 #define max(a, b) (((a) > (b)) ? (a) : (b))
 
-int eval_field(Bot* g, int** field)
+int eval_field_b2(Bot* g, int** field)
 {
 	int	sum;
 	int	i;
@@ -16,14 +16,14 @@ int eval_field(Bot* g, int** field)
 	sum = 0;
 	for (i = 0; i < g->rows; i++) {
 		for (j = 0; j < g->cols; j++) {
-			sum += eval_square(g, field, i, j);
+			sum += eval_square_b2(g, field, i, j);
 		}
 	}
 
 	return sum;
 }
 
-Bot* init_bot(Game* g)
+Bot* init_bot_b2(Game* g)
 {
 	Bot*	b;
 	State*	root;
@@ -43,12 +43,12 @@ Bot* init_bot(Game* g)
 	root->turn = g->turn;
 	root->children = NULL;
 	root->field = clone_field(b, g->field);
-	root->base_eval = eval_field(b, root->field);
+	root->base_eval = eval_field_b2(b, root->field);
 	root->eval = root->base_eval;
 	return b;
 }
 
-int value(int p_1, int p_2)
+int value_b2(int p_1, int p_2)
 {
 	if ((p_1 > 0 && p_2 > 0) || (p_1 == 0 && p_2 == 0)) {
 		return 0;
@@ -74,7 +74,7 @@ int value(int p_1, int p_2)
 	return -99999;
 }
 
-int eval_rows(Bot* g, int** field, int row, int col)
+int eval_rows_b2(Bot* g, int** field, int row, int col)
 {
 	int	sum;
 	int	i;
@@ -97,13 +97,13 @@ int eval_rows(Bot* g, int** field, int row, int col)
 				p_2++;
 			}
 		}
-		sum += value(p_1, p_2);
+		sum += value_b2(p_1, p_2);
 	}
 
 	return sum;
 }
 
-int eval_cols(Bot* g, int** field, int row, int col)
+int eval_cols_b2(Bot* g, int** field, int row, int col)
 {
 	int	sum;
 	int	i;
@@ -126,12 +126,12 @@ int eval_cols(Bot* g, int** field, int row, int col)
 				p_2++;
 			}
 		}
-		sum += value(p_1, p_2);
+		sum += value_b2(p_1, p_2);
 	}
 	return sum;
 }
 
-int eval_diags(Bot* g, int** field, int row, int col)
+int eval_diags_b2(Bot* g, int** field, int row, int col)
 {
 	int	sum;
 	int	i;
@@ -155,7 +155,7 @@ int eval_diags(Bot* g, int** field, int row, int col)
 				p_2++;
 			}
 		}
-		sum += value(p_1, p_2);
+		sum += value_b2(p_1, p_2);
 	}
 
 	/* Diagonally up */
@@ -171,26 +171,27 @@ int eval_diags(Bot* g, int** field, int row, int col)
 				p_2++;
 			}
 		}
-		sum += value(p_1, p_2);
+		sum += value_b2(p_1, p_2);
 	}
 	return sum;
 }
 
-int eval_square(Bot* g, int** field, int row, int col)
+int eval_square_b2(Bot* g, int** field, int row, int col)
 {
 	if (field[row][col] == 0) {
 		return 0;
 	}
-	return eval_rows(g, field, row, col) + eval_cols(g, field, row, col) +
-		eval_diags(g, field, row, col);
+	return eval_rows_b2(g, field, row, col) + eval_cols_b2(g, field, row, col) +
+		eval_diags_b2(g, field, row, col);
 }
 
-void eval_state(State* s)
+void eval_state_b2(State* s)
 {
-	s->eval = eval_field(s->b, s->field);
+	s->base_eval += eval_square_b2(s->b, s->field, s->move_row, s->move_col);
+	s->eval = s->base_eval;
 }
 
-void reevaluate(State* state)
+void reevaluate_b2(State* state)
 {
 	int	old_eval;
 
@@ -205,7 +206,7 @@ void reevaluate(State* state)
 	}
 }
 
-void eval_children(List* work, State* s)
+void eval_children_b2(List* work, State* s)
 {
 	List*	sorted;
 	State*	child;
@@ -218,7 +219,7 @@ void eval_children(List* work, State* s)
 	sorted = init_list();
 	child = l_pop_first(s->children);
 	while (child != NULL) {
-		eval_state(child);
+		eval_state_b2(child);
 		l_append_sorted(sorted, child);
 		child = l_pop_first(s->children);
 	}
@@ -226,10 +227,10 @@ void eval_children(List* work, State* s)
 	s->children = sorted;
 	l_add_n(s->children, work);
 	s->eval = best_state(s)->eval;
-	reevaluate(s->parent);
+	reevaluate_b2(s->parent);
 }
 
-int get_best_move(Game* g, time_t seconds)
+int get_best_move_b2(Game* g, time_t seconds)
 {
 	Bot*	b;
 	List*	work;
@@ -240,7 +241,7 @@ int get_best_move(Game* g, time_t seconds)
 	int	batch_size;
 	int	iterations;
 
-	b = init_bot(g);
+	b = init_bot_b2(g);
 
 	start = time(NULL);
 	batch_size = 10000;
@@ -254,7 +255,7 @@ int get_best_move(Game* g, time_t seconds)
 			if (s == NULL) {
 				break;
 			}
-			eval_children(work, s);
+			eval_children_b2(work, s);
 		}
 		iterations++;
 	}

@@ -1,16 +1,10 @@
 #ifndef STATE_H
 #define STATE_H
 
-#include "game.h"
-
 typedef struct State State;
 typedef struct Node Node;
 typedef struct List List;
 typedef struct Bot Bot;
-typedef enum {
-	V1,
-	V2
-} BotVersion;
 
 struct State {
 	Bot*	b;
@@ -18,6 +12,7 @@ struct State {
 	State*	parent;
 	int**	field;
 	int	depth;
+	int	base_eval;
 	int	eval;
 	int	move_col;
 	int	move_row;
@@ -36,9 +31,7 @@ struct List {
 };
 
 struct Bot {
-	BotVersion	v;
 	State*		root;
-	int		turn;
 	int		rows;
 	int		cols;
 };
