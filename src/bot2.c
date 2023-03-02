@@ -124,16 +124,26 @@ static State* l_pop_first(List* l)
 	return s;
 }
 
-static void l_add_n(List* l_from, List* l_to)
+static void l_add_n(List* l_from, List* l_to, int limit)
 {
 	Node*	n;
+	int	floor;
+	int	i;
 
 	if (l_from->first == NULL) {
 		return;
 	}
 
 	n = l_from->first;
-	while (n != NULL && abs(n->state->eval) < 999) {
+	if (n == NULL) {
+		return;
+	}
+
+	floor = max(limit, 1 + n->state->b->cols - n->state->depth);
+	for (i = 0; i < floor; i++) {
+		if (n == NULL || abs(n->state->eval) > 999) {
+			return;
+		}
 		l_append(l_to, n->state);
 		n = n->next;
 	}
@@ -496,7 +506,7 @@ static void eval_children(List* work, State* s)
 	}
 	free(s->children);
 	s->children = sorted;
-	l_add_n(s->children, work);
+	l_add_n(s->children, work, 4);
 	s->eval = best_state(s)->eval;
 	reevaluate(s->parent);
 }

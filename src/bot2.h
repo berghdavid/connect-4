@@ -51,7 +51,7 @@ static void l_append_sorted(List* l, State* s);
 
 static State* l_pop_first(List* l);
 
-static void l_add_n(List* l_from, List* l_to);
+static void l_add_n(List* l_from, List* l_to, int limit);
 
 static List* l_sort(List* l);
 
