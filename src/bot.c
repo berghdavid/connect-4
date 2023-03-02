@@ -53,7 +53,7 @@ int value(int p_1, int p_2)
 		} else if (p_1 == 3) {
 			return 20;
 		} else {
-			return 999;
+			return 99999;
 		}
 	}
 	if (p_2 == 1) {
@@ -63,7 +63,7 @@ int value(int p_1, int p_2)
 	} else if (p_2 == 3) {
 		return -20;
 	}
-	return -999;
+	return -99999;
 }
 
 int eval_rows(Game* g, int** field, int row, int col)
@@ -230,13 +230,13 @@ int get_best_move(Game* g, time_t seconds)
 	State*	root;
 	State*	s;
 	time_t	stamp;
+	int	best;
 	int	batch;
 	int	batch_size;
-	int	best;
 	int	iterations;
 
 	stamp = time(NULL);
-	batch_size = 10000;
+	batch_size = 2801;
 	iterations = 0;
 	work = init_list();
 	root = init_root(g);
@@ -252,9 +252,14 @@ int get_best_move(Game* g, time_t seconds)
 		}
 		iterations++;
 	}
-	
-	best = best_state(root)->move_col;
+
+	print_state(root);
 	printf("Achieved depth %d\n", tree_depth(root));
+	s = best_state(root);
+	best = -1;
+	if (s != NULL) {
+		best = s->move_col;
+	}
 
 	free_list(work);
 	free_state(root);

@@ -156,7 +156,7 @@ void l_add_n(List* l_from, List* l_to)
 	}
 
 	n = l_from->first;
-	while (n != NULL && abs(n->state->eval) < 9999) {
+	while (n != NULL && abs(n->state->eval) < 999) {
 		l_append(l_to, n->state);
 		n = n->next;
 	}
@@ -193,7 +193,7 @@ List* possible_moves(State* s)
 
 State* best_state(State* s)
 {
-	if (s->children != NULL && s->children->first != NULL) {
+	if (s->children != NULL && s->children->size > 0) {
 		return s->children->first->state;
 	}
 	return NULL;

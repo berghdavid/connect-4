@@ -90,6 +90,6 @@ int main(int argc, char **argv)
 	printf("\t0: Play against self.\n");
 	printf("\t1: Play against bot.\n");
 	printf("\t2: Bot against bot.\n");
-	/* printf("3: Bot against AI course bot.\n"); */
+	/* TODO: printf("3: Bot against AI course bot.\n"); */
 	return 1;
 }

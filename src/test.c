@@ -1,35 +1,40 @@
+#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include "game.h"
 #include "bot.h"
 
-
-int test()
+void test_1()
 {
 	Game*	g;
-        State*  s;
+	State*  s;
+	int     pass;
 
+	pass = 0;
 	g = init_game(7, 6);
 
-        make_move(g, 3);
-        make_move(g, 4);
-        make_move(g, 4);
-        make_move(g, 4);
-        make_move(g, 2);
-        make_move(g, 4);
-        make_move(g, 1);
-        make_move(g, 4);
-        s = init_root(g);
-	print_game(g, g->field);
-        printf("Eval: %d\n", s->eval);
+	make_move(g, 1);
+	make_move(g, 1);
+	make_move(g, 2);
+	make_move(g, 2);
+	make_move(g, 3);
+	make_move(g, 3);
+	make_move(g, 0);
+	s = init_root(g);
+	pass = abs(s->eval) > 999;
 	
 	free_state(s);
 	free_game(g);
-	return 0;
+	printf("test_1: ");
+	if (pass) {
+		printf("PASSED\n");
+	} else {
+		printf("FAILED\n");
+	}
 }
 
 int main()
 {
-	test();
-        return 0;
+	test_1();
+	return 0;
 }
