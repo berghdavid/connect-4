@@ -18,7 +18,7 @@ int get_input(Game* g, InputType type)
 		if (g->turn == 1) {
 			input = get_best_move(g, 1, 0);
 		} else {
-			input = get_best_move_2(g, 1, 0);
+			input = get_best_move_2(g, 0.5, 1);
 		}
 	}
 	printf("Selected move: %d\n", input);

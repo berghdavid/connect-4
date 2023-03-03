@@ -95,4 +95,6 @@ static void reset_field(State* s);
 
 static void eval_children(List* l, State* s);
 
+static long good_batch_nbr(List* work, clock_t start, clock_t stop, int first);
+
 #endif

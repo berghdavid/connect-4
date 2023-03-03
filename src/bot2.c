@@ -451,7 +451,8 @@ static int eval_square(Bot* b, int row, int col)
 	if (b->field[row][col] == 0) {
 		return 0;
 	}
-	return eval_rows(b, row, col) + eval_cols(b, row, col) + eval_diags(b, row, col);
+	return eval_rows(b, row, col) + eval_cols(b, row, col) +
+		eval_diags(b, row, col);
 }
 
 static void eval_state(State* s)
@@ -529,26 +530,50 @@ static void eval_children(List* work, State* s)
 	reevaluate(s->parent);
 }
 
-int get_best_move_2(Game* g, time_t seconds, int logging)
+static long good_batch_nbr(List* work, clock_t start, clock_t stop, int first)
+{
+	State*	s;
+	int	batch;
+	clock_t	passed;
+	clock_t	batch_ticks;
+
+	for (batch = 0; batch < first; batch++) {
+		s = l_pop_first(work);
+		if (s == NULL) {
+			break;
+		}
+		eval_children(work, s);
+	}
+	passed = clock() - start;
+	batch_ticks = (stop - clock()) / 4;
+	return first * batch_ticks / passed;
+}
+
+int get_best_move_2(Game* g, double seconds, int logging)
 {
 	Bot*	b;
 	List*	work;
 	State*	s;
-	time_t	start;
-	int	best;
+	clock_t	start;
+	clock_t	stop;
+	double	time_diff;
+	long	batch_size;
+	long	best;
+	int	first_batch;
 	int	batch;
-	int	batch_size;
 	int	iterations;
 
-	start = time(NULL);
+	start = clock();
 	b = init_bot(g);
 	work = init_list();
 	l_append(work, b->root);
-
 	batch = 0;
-	batch_size = 10000;
 	iterations = 0;
-	while (work->first != NULL && time(NULL) < start + seconds) {
+
+	first_batch = 1000;
+	stop = start + ((clock_t) (seconds * CLOCKS_PER_SEC));
+	batch_size = good_batch_nbr(work, start, stop, first_batch);
+	while (work->first != NULL && clock() < stop) {
 		iterations++;
 		for (batch = 0; batch < batch_size; batch++) {
 			s = l_pop_first(work);
@@ -559,15 +584,20 @@ int get_best_move_2(Game* g, time_t seconds, int logging)
 			eval_children(work, s);
 		}
 	}
-	if (logging) {
-		printf("\tEvaluated nodes: %d\n", (iterations * batch_size) + batch);
-		printf("\tAchieved depth %d\n", tree_depth(b->root));
-		printf("\tCurrent evaluation: %d\n", b->root->eval);
-	}
 	s = best_state(b->root);
 	best = -1;
 	if (s != NULL) {
 		best = s->move_col;
+	}
+
+	if (logging) {
+		time_diff = (double) (clock() - start) / CLOCKS_PER_SEC;
+		printf("\tTime passed (ms): %.3f\n", time_diff);
+		printf("\tBatch size: %ld\n", batch_size);
+		printf("\tEvaluated nodes: %ld\n", (iterations * batch_size) +
+			batch + first_batch);
+		printf("\tDepth computed: %d\n", tree_depth(b->root));
+		printf("\tCurrent evaluation: %d\n", b->root->eval);
 	}
 
 	free_list(work);
