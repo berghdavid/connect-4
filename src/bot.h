@@ -39,62 +39,74 @@ struct Bot {
 	int	cols;
 };
 
-static List* init_list();
+List* init_list();
 
-static void free_list_and_contents(List* l);
+void free_list_and_contents(List* l);
 
-static void free_list(List* l);
+void free_list(List* l);
 
-static void l_append(List* l, State* s);
+void l_append(List* l, State* s);
 
-static void l_append_sorted(List* l, State* s);
+void l_append_sorted(List* l, State* s);
 
-static State* l_pop_first(List* l);
+State* l_pop_first(List* l);
 
-static void l_add_n(List* l_from, List* l_to, int limit);
+void l_add_n(List* l_from, List* l_to, int limit);
 
-static List* l_sort(List* l);
+List* l_sort(List* l);
 
-static State* best_state(State* s);
+State* best_state(State* s);
 
-static int get_move_row(State* s);
+int get_move_row(State* s);
 
-static State* init_state(State* parent, int move);
+State* init_state(State* parent, int move);
 
-static void free_state(State* s);
+void free_state(State* s);
 
-static List* possible_moves(State* s);
+List* possible_moves(State* s);
 
-static int tree_depth(State* s);
+int tree_depth(State* s);
 
-static int** clone_field(Bot* b, int** field);
+int** clone_field(Bot* b, int** field);
 
-static int eval_field(Bot* b);
+int eval_field(Bot* b);
 
-static Bot* init_bot(Game* g);
+Bot* init_bot(Game* g);
 
-static void free_bot(Bot* b);
+void free_bot(Bot* b);
 
-static int value(int p_opp, int p_me);
+int value(int p_opp, int p_me);
 
-static int eval_rows(Bot* b, int row, int col);
+int eval_rows(Bot* b, int row, int col);
 
-static int eval_cols(Bot* b, int row, int col);
+int eval_cols(Bot* b, int row, int col);
 
-static int eval_diags(Bot* b, int row, int col);
+int eval_diags(Bot* b, int row, int col);
 
-static int eval_square(Bot* b, int row, int col);
+int eval_square(Bot* b, int row, int col);
 
-static void eval_state(State* s);
+void eval_state(State* s);
 
-static void reevaluate(State* parent);
+void reevaluate(State* parent);
 
-static void update_field(State* s);
+void update_field(State* s);
 
-static void reset_field(State* s);
+void reset_field(State* s);
 
-static void eval_children(List* l, State* s);
+void eval_children(List* l, State* s);
 
-static long good_batch_nbr(List* work, clock_t start, clock_t stop, int first);
+long good_batch_nbr(List* work, clock_t start, clock_t stop, int first);
+
+/**
+ * @brief Compute the best move given a set of constraints
+ * 
+ * @param g The game being played, contains relevant information such as whose
+ * turn it is and how the playing board looks like.
+ * @param seconds The approximate number of seconds the bot is allowed to
+ * think. Note that the bot might exceed this number by 1/4 approximately.
+ * @param logging Whether to print results retrieved or not.
+ * @return Which column the playing token should be placed into.
+ */
+int bot_move(Game* g, double seconds, int logging);
 
 #endif

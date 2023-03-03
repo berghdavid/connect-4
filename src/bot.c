@@ -4,12 +4,11 @@
 #include <stdio.h>
 #include "game.h"
 #include "bot.h"
-#include "bot_move.h"
 
 #define min(a, b) (((a) < (b)) ? (a) : (b))
 #define max(a, b) (((a) > (b)) ? (a) : (b))
 
-static List* init_list()
+List* init_list()
 {
 	List*	l;
 	l = malloc(sizeof(List));
@@ -19,7 +18,7 @@ static List* init_list()
 	return l;
 }
 
-static void free_list_and_contents(List* l)
+void free_list_and_contents(List* l)
 {
 	Node*	child;
 	Node*	next;
@@ -34,7 +33,7 @@ static void free_list_and_contents(List* l)
 	free(l);
 }
 
-static void free_list(List* l)
+void free_list(List* l)
 {
 	Node*	child;
 	Node*	next;
@@ -48,7 +47,7 @@ static void free_list(List* l)
 	free(l);
 }
 
-static void l_append(List* l, State* s)
+void l_append(List* l, State* s)
 {
 	Node*	n;
 
@@ -64,7 +63,7 @@ static void l_append(List* l, State* s)
 	l->size++;
 }
 
-static void l_append_sorted(List* l, State* s)
+void l_append_sorted(List* l, State* s)
 {
 	Node*	n_i;
 	Node*	n;
@@ -105,7 +104,7 @@ static void l_append_sorted(List* l, State* s)
 	l->size++;
 }
 
-static State* l_pop_first(List* l)
+State* l_pop_first(List* l)
 {
 	Node*	n;
 	State*	s;
@@ -124,7 +123,7 @@ static State* l_pop_first(List* l)
 	return s;
 }
 
-static void l_add_n(List* l_from, List* l_to, int limit)
+void l_add_n(List* l_from, List* l_to, int limit)
 {
 	Node*	n;
 	int	floor;
@@ -149,7 +148,7 @@ static void l_add_n(List* l_from, List* l_to, int limit)
 	}
 }
 
-static List* l_sort(List* l)
+List* l_sort(List* l)
 {
 	List*	sorted;
 	State*	child;
@@ -164,7 +163,7 @@ static List* l_sort(List* l)
 	return sorted;
 }
 
-static State* best_state(State* s)
+State* best_state(State* s)
 {
 	if (s->children != NULL && s->children->size > 0) {
 		return s->children->first->state;
@@ -172,7 +171,7 @@ static State* best_state(State* s)
 	return NULL;
 }
 
-static int get_move_row(State* s)
+int get_move_row(State* s)
 {
 	int**	field;
 	int	row;
@@ -190,7 +189,7 @@ static int get_move_row(State* s)
 	return row;
 }
 
-static State* init_state(State* parent, int move)
+State* init_state(State* parent, int move)
 {
 	State*	s;
 	s = malloc(sizeof(State));
@@ -207,7 +206,7 @@ static State* init_state(State* parent, int move)
 	return s;
 }
 
-static void free_state(State* s)
+void free_state(State* s)
 {
 	if (s->children != NULL) {
 		free_list_and_contents(s->children);
@@ -215,7 +214,7 @@ static void free_state(State* s)
 	free(s);
 }
 
-static List* possible_moves(State* s)
+List* possible_moves(State* s)
 {
 	List*	list;
 	int	i;
@@ -229,7 +228,7 @@ static List* possible_moves(State* s)
 	return list;
 }
 
-static int tree_depth(State* root)
+int tree_depth(State* root)
 {
 	int	depth;
 	State*	s_i;
@@ -243,7 +242,7 @@ static int tree_depth(State* root)
 	return depth;
 }
 
-static int** clone_field(Bot* g, int** old_field)
+int** clone_field(Bot* g, int** old_field)
 {
 	int**	new_f;
 	int	i;
@@ -259,7 +258,7 @@ static int** clone_field(Bot* g, int** old_field)
 	return new_f;
 }
 
-static int eval_field(Bot* b)
+int eval_field(Bot* b)
 {
 	int	sum;
 	int	i;
@@ -275,7 +274,7 @@ static int eval_field(Bot* b)
 	return sum;
 }
 
-static Bot* init_bot(Game* g)
+Bot* init_bot(Game* g)
 {
 	Bot*	b;
 	State*	root;
@@ -300,7 +299,7 @@ static Bot* init_bot(Game* g)
 	return b;
 }
 
-static void free_bot(Bot* b)
+void free_bot(Bot* b)
 {
 	int	i;
 
@@ -312,7 +311,7 @@ static void free_bot(Bot* b)
 	free(b);
 }
 
-static int value(int p_1, int p_2)
+int value(int p_1, int p_2)
 {
 	if ((p_1 > 0 && p_2 > 0) || (p_1 == 0 && p_2 == 0)) {
 		return 0;
@@ -338,7 +337,7 @@ static int value(int p_1, int p_2)
 	return -99999;
 }
 
-static int eval_rows(Bot* b, int row, int col)
+int eval_rows(Bot* b, int row, int col)
 {
 	int**	field;
 	int	sum;
@@ -369,7 +368,7 @@ static int eval_rows(Bot* b, int row, int col)
 	return sum;
 }
 
-static int eval_cols(Bot* b, int row, int col)
+int eval_cols(Bot* b, int row, int col)
 {
 	int**	field;
 	int	sum;
@@ -399,7 +398,7 @@ static int eval_cols(Bot* b, int row, int col)
 	return sum;
 }
 
-static int eval_diags(Bot* b, int row, int col)
+int eval_diags(Bot* b, int row, int col)
 {
 	int**	field;
 	int	sum;
@@ -446,7 +445,7 @@ static int eval_diags(Bot* b, int row, int col)
 	return sum;
 }
 
-static int eval_square(Bot* b, int row, int col)
+int eval_square(Bot* b, int row, int col)
 {
 	if (b->field[row][col] == 0) {
 		return 0;
@@ -455,7 +454,7 @@ static int eval_square(Bot* b, int row, int col)
 		eval_diags(b, row, col);
 }
 
-static void eval_state(State* s)
+void eval_state(State* s)
 {
 	s->b->field[s->move_row][s->move_col] = -s->turn;
 	s->base_eval = eval_square(s->b, s->move_row, s->move_col);
@@ -463,7 +462,7 @@ static void eval_state(State* s)
 	s->b->field[s->move_row][s->move_col] = 0;
 }
 
-static void reevaluate(State* state)
+void reevaluate(State* state)
 {
 	int	old_eval;
 
@@ -478,7 +477,7 @@ static void reevaluate(State* state)
 	}
 }
 
-static void update_field(State* s)
+void update_field(State* s)
 {
 	State*	s_i;
 	int**	field;
@@ -491,7 +490,7 @@ static void update_field(State* s)
 	}
 }
 
-static void reset_field(State* s)
+void reset_field(State* s)
 {
 	State*	s_i;
 	int**	field;
@@ -504,7 +503,7 @@ static void reset_field(State* s)
 	}
 }
 
-static void eval_children(List* work, State* s)
+void eval_children(List* work, State* s)
 {
 	List*	sorted;
 	State*	child;
@@ -530,7 +529,7 @@ static void eval_children(List* work, State* s)
 	reevaluate(s->parent);
 }
 
-static long good_batch_nbr(List* work, clock_t start, clock_t stop, int first)
+long good_batch_nbr(List* work, clock_t start, clock_t stop, int first)
 {
 	State*	s;
 	int	batch;

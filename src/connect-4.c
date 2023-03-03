@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include "connect-4.h"
 #include "game.h"
-#include "bot_move.h"
+#include "bot.h"
 
 int get_input(Game* g, InputType type, double time)
 {
