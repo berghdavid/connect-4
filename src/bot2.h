@@ -13,7 +13,6 @@ struct State {
 	Bot*	b;
 	List*	children;
 	State*	parent;
-	int**	field;
 	int	depth;
 	int	base_eval;
 	int	eval;
@@ -34,9 +33,10 @@ struct List {
 };
 
 struct Bot {
-	State*		root;
-	int		rows;
-	int		cols;
+	State*	root;
+	int**	field;
+	int	rows;
+	int	cols;
 };
 
 static List* init_list();
@@ -55,41 +55,43 @@ static void l_add_n(List* l_from, List* l_to, int limit);
 
 static List* l_sort(List* l);
 
-static List* possible_moves(State* s);
-
 static State* best_state(State* s);
-
-static void print_state(State* s);
-
-static void free_state(State* s);
-
-static int tree_depth(State* s);
-
-static int** clone_field(Bot* b, int** field);
-
-static int** new_field(State* s);
 
 static int get_move_row(State* s);
 
 static State* init_state(State* parent, int move);
 
-static int eval_field(Bot* g, int** field);
+static void free_state(State* s);
+
+static List* possible_moves(State* s);
+
+static int tree_depth(State* s);
+
+static int** clone_field(Bot* b, int** field);
+
+static int eval_field(Bot* b);
 
 static Bot* init_bot(Game* g);
 
+static void free_bot(Bot* b);
+
 static int value(int p_opp, int p_me);
 
-static int eval_rows(Bot* g, int** field, int row, int col);
+static int eval_rows(Bot* b, int row, int col);
 
-static int eval_cols(Bot* g, int** field, int row, int col);
+static int eval_cols(Bot* b, int row, int col);
 
-static int eval_diags(Bot* g, int** field, int row, int col);
+static int eval_diags(Bot* b, int row, int col);
 
-static int eval_square(Bot* g, int** field, int row, int col);
+static int eval_square(Bot* b, int row, int col);
 
 static void eval_state(State* s);
 
 static void reevaluate(State* parent);
+
+static void update_field(State* s);
+
+static void reset_field(State* s);
 
 static void eval_children(List* l, State* s);
 

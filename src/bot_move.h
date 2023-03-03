@@ -4,6 +4,6 @@
 #include <time.h>
 #include "game.h"
 
-int get_best_move(Game* g, time_t seconds);
+int get_best_move(Game* g, time_t seconds, int logging);
 
 #endif

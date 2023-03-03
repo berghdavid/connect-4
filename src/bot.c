@@ -483,7 +483,7 @@ static void eval_children(List* work, State* s)
 	reevaluate(s->parent);
 }
 
-int get_best_move(Game* g, time_t seconds)
+int get_best_move(Game* g, time_t seconds, int logging)
 {
 	Bot*	b;
 	List*	work;
@@ -512,9 +512,10 @@ int get_best_move(Game* g, time_t seconds)
 		}
 		iterations++;
 	}
-
-	printf("Evaluated nodes: %d\n", ((iterations - 1) * batch_size) + batch);
-	printf("Achieved depth %d\n", tree_depth(b->root));
+	if (logging) {
+		printf("\tEvaluated nodes: %d\n", ((iterations - 1) * batch_size) + batch);
+		printf("\tAchieved depth %d\n", tree_depth(b->root));
+	}
 	s = best_state(b->root);
 	best = -1;
 	if (s != NULL) {

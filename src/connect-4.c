@@ -16,9 +16,9 @@ int get_input(Game* g, InputType type)
 	} else if (type == BOT) {
 		printf("Player %d's turn:\n", g->turn);
 		if (g->turn == 1) {
-			input = get_best_move(g, 1);
+			input = get_best_move(g, 1, 0);
 		} else {
-			input = get_best_move_2(g, 1);
+			input = get_best_move_2(g, 1, 0);
 		}
 	}
 	printf("Selected move: %d\n", input);
