@@ -15,8 +15,9 @@ struct Game {
  * 
  * @param rows The number of rows in the playing field.
  * @param cols The number of columns in the playing field.
+ * @param starter Which player starts off the game.
  */
-Game* init_game(int rows, int cols);
+Game* init_game(int rows, int cols, int starter);
 
 /**
  * @brief Free the memory allocated for the playing board.

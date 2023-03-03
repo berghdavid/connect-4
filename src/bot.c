@@ -545,7 +545,7 @@ static long good_batch_nbr(List* work, clock_t start, clock_t stop, int first)
 		eval_children(work, s);
 	}
 	passed = clock() - start;
-	batch_ticks = (stop - clock()) / 4;
+	batch_ticks = (stop - clock()) / 7;
 	return first * batch_ticks / passed;
 }
 

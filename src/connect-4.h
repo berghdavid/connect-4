@@ -8,9 +8,9 @@ typedef enum {
 	BOT
 } InputType;
 
-int get_input(Game* g, InputType type);
+int get_input(Game* g, InputType type, double time);
 
-int play_game(InputType p1, InputType p2);
+int play_game(InputType p1, InputType p2, int rows, int cols, double time, int starter);
 
 int main(int argc, char **argv);
 

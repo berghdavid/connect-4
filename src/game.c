@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include "game.h"
 
-Game* init_game(int rows, int cols)
+Game* init_game(int rows, int cols, int starter)
 {
 	Game*	g;
 	int	i;
@@ -13,7 +13,7 @@ Game* init_game(int rows, int cols)
 	g = malloc(sizeof(Game));
 	g->rows = rows;
 	g->cols = cols;
-	g->turn = 1;
+	g->turn = starter;
 	g->field = malloc(rows * sizeof(int*));
 	for (i = 0; i < rows; i++) {
 		g->field[i] = calloc(cols, sizeof(int));
