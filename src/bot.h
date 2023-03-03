@@ -2,12 +2,33 @@
 #define BOT_H
 
 #include <time.h>
+#include "connect-4.h"
 #include "game.h"
 
-typedef struct State State;
-typedef struct Node Node;
-typedef struct List List;
 typedef struct Bot Bot;
+typedef struct List List;
+typedef struct Node Node;
+typedef struct State State;
+
+struct Bot {
+	State*	root;
+	int**	field;
+	int	rows;
+	int	cols;
+	int	limit;
+	int	offset;
+};
+
+struct List {
+	Node*	first;
+	Node*	last;
+	int	size;
+};
+
+struct Node {
+	State*	state;
+	Node*	next;
+};
 
 struct State {
 	Bot*	b;
@@ -19,24 +40,6 @@ struct State {
 	int	move_col;
 	int	move_row;
 	int	turn;
-};
-
-struct Node {
-	State*	state;
-	Node*	next;
-};
-
-struct List {
-	Node*	first;
-	Node*	last;
-	int	size;
-};
-
-struct Bot {
-	State*	root;
-	int**	field;
-	int	rows;
-	int	cols;
 };
 
 List* init_list();
@@ -51,7 +54,7 @@ void l_append_sorted(List* l, State* s);
 
 State* l_pop_first(List* l);
 
-void l_add_n(List* l_from, List* l_to, int limit);
+void l_add_n(List* l_from, List* l_to, Bot* b);
 
 List* l_sort(List* l);
 
@@ -71,7 +74,15 @@ int** clone_field(Bot* b, int** field);
 
 int eval_field(Bot* b);
 
-Bot* init_bot(Game* g);
+/**
+ * @brief Initialize a bot struct containing the information given from the 
+ * game object.
+ * 
+ * @param g The game object, containing field information among other params.
+ * @param g The player object, determining how the nodes will be evaluated.
+ * @return A Bot* object.
+ */
+Bot* init_bot(Game* g, Player* p);
 
 void free_bot(Bot* b);
 
@@ -102,11 +113,11 @@ long good_batch_nbr(List* work, clock_t start, clock_t stop, int first);
  * 
  * @param g The game being played, contains relevant information such as whose
  * turn it is and how the playing board looks like.
- * @param seconds The approximate number of seconds the bot is allowed to
- * think. Note that the bot might exceed this number by 1/4 approximately.
+ * @param p The player object which contains parameters affecting the evaluation
+ * process.
  * @param logging Whether to print results retrieved or not.
  * @return Which column the playing token should be placed into.
  */
-int bot_move(Game* g, double seconds, int logging);
+int bot_move(Game* g, Player* p, int logging);
 
 #endif

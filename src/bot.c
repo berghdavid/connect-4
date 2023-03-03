@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <time.h>
 #include <stdio.h>
+#include "connect-4.h"
 #include "game.h"
 #include "bot.h"
 
@@ -123,23 +124,24 @@ State* l_pop_first(List* l)
 	return s;
 }
 
-void l_add_n(List* l_from, List* l_to, int limit)
+void l_add_n(List* l_from, List* l_to, Bot* b)
 {
 	Node*	n;
-	int	floor;
+	int	nodes;
 	int	i;
-
-	if (l_from->first == NULL) {
-		return;
-	}
 
 	n = l_from->first;
 	if (n == NULL) {
 		return;
 	}
 
-	floor = max(limit, 1 + n->state->b->cols - n->state->depth);
-	for (i = 0; i < floor; i++) {
+	if (b->limit != 0) {
+		nodes = max(b->limit, b->offset + b->cols - n->state->depth);
+	} else {
+		nodes = b->cols;
+	}
+
+	for (i = 0; i < nodes; i++) {
 		if (n == NULL || abs(n->state->base_eval) > 999) {
 			return;
 		}
@@ -274,7 +276,7 @@ int eval_field(Bot* b)
 	return sum;
 }
 
-Bot* init_bot(Game* g)
+Bot* init_bot(Game* g, Player* p)
 {
 	Bot*	b;
 	State*	root;
@@ -282,10 +284,14 @@ Bot* init_bot(Game* g)
 	b = malloc(sizeof(Bot));
 	root = malloc(sizeof(State));
 
+
 	b->root = root;
 	b->rows = g->rows;
 	b->cols = g->cols;
+	b->limit = p->limit;
+	b->offset = p->offset;
 	b->field = clone_field(b, g->field);
+
 
 	root->b = b;
 	root->depth = 0;
@@ -524,7 +530,7 @@ void eval_children(List* work, State* s)
 	reset_field(s);
 	free(s->children);
 	s->children = sorted;
-	l_add_n(s->children, work, s->b->cols);
+	l_add_n(s->children, work, s->b);
 	s->eval = best_state(s)->eval;
 	reevaluate(s->parent);
 }
@@ -548,7 +554,7 @@ long good_batch_nbr(List* work, clock_t start, clock_t stop, int first)
 	return first * batch_ticks / passed;
 }
 
-int bot_move(Game* g, double seconds, int logging)
+int bot_move(Game* g, Player* p, int logging)
 {
 	Bot*	b;
 	List*	work;
@@ -563,14 +569,14 @@ int bot_move(Game* g, double seconds, int logging)
 	int	iterations;
 
 	start = clock();
-	b = init_bot(g);
+	b = init_bot(g, p);
 	work = init_list();
 	l_append(work, b->root);
 	batch = 0;
 	iterations = 0;
 
 	first_batch = 1000;
-	stop = start + ((clock_t) (seconds * CLOCKS_PER_SEC));
+	stop = start + ((clock_t) (p->time * CLOCKS_PER_SEC));
 	batch_size = good_batch_nbr(work, start, stop, first_batch);
 	while (work->first != NULL && clock() < stop) {
 		iterations++;

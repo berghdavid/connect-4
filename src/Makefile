@@ -8,6 +8,9 @@ debug: CFLAGS += -ggdb3
 .PHONY: all
 all: $(PROGS)
 
+params: connect-4 # Display customizable parameters
+	./connect-4
+
 run-bb: connect-4 # Play the bot against itself
 	./connect-4 0
 

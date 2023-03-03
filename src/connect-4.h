@@ -3,14 +3,24 @@
 
 #include "game.h"
 
+typedef struct Player Player;
 typedef enum {
 	PLAYER,
 	BOT
 } InputType;
 
-int get_input(Game* g, InputType type, double time);
+struct Player {
+	InputType	input;
+	double		time;
+	int		limit;
+	int		offset;
+};
 
-int play_game(InputType p1, InputType p2, int rows, int cols, double time, int starter);
+Player* init_player();
+
+int get_input(Game* g, Player* p);
+
+int play_game(Player* p1, Player* p2, int rows, int cols, int starter);
 
 int main(int argc, char **argv);
 
