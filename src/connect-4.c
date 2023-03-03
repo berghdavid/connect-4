@@ -3,7 +3,6 @@
 #include "connect-4.h"
 #include "game.h"
 #include "bot_move.h"
-#include "bot2_move.h"
 
 int get_input(Game* g, InputType type)
 {
@@ -15,11 +14,7 @@ int get_input(Game* g, InputType type)
 		scanf("%d", &input);
 	} else if (type == BOT) {
 		printf("Player %d's turn:\n", g->turn);
-		if (g->turn == 1) {
-			input = get_best_move(g, 1, 0);
-		} else {
-			input = get_best_move_2(g, 0.5, 1);
-		}
+		input = bot_move(g, 4.0, 0);
 	}
 	printf("Selected move: %d\n", input);
 
@@ -37,6 +32,7 @@ int play_game(InputType p1, InputType p2)
 	g = init_game(6, 7);
 	fails = 0;
 	round = 0;
+	player = 0;
 	while (1) {
 		printf("\n --- ROUND %d ---\n", round);
 		print_game(g, g->field);
@@ -72,7 +68,7 @@ int play_game(InputType p1, InputType p2)
 		}
 	}
 	free_game(g);
-	return 0;
+	return player;
 }
 
 int main(int argc, char **argv)
@@ -83,12 +79,13 @@ int main(int argc, char **argv)
 		input = argv[1][0];
 		printf("Input: %c\n", input);
 		if (input == '0') {
-			return play_game(PLAYER, PLAYER);
+			play_game(PLAYER, PLAYER);
 		} else if (input == '1') {
-			return play_game(PLAYER, BOT);
+			play_game(PLAYER, BOT);
 		} else if (input == '2') {
-			return play_game(BOT, BOT);
+			play_game(BOT, BOT);
 		}
+		return 0;
 	}
 
 	printf("Must run with argument...\n");

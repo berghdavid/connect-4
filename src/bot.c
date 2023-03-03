@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <time.h>
 #include <stdio.h>
+#include "game.h"
 #include "bot.h"
 #include "bot_move.h"
 
@@ -123,16 +124,26 @@ static State* l_pop_first(List* l)
 	return s;
 }
 
-static void l_add_n(List* l_from, List* l_to)
+static void l_add_n(List* l_from, List* l_to, int limit)
 {
 	Node*	n;
+	int	floor;
+	int	i;
 
 	if (l_from->first == NULL) {
 		return;
 	}
 
 	n = l_from->first;
-	while (n != NULL && abs(n->state->eval) < 999) {
+	if (n == NULL) {
+		return;
+	}
+
+	floor = max(limit, 1 + n->state->b->cols - n->state->depth);
+	for (i = 0; i < floor; i++) {
+		if (n == NULL || abs(n->state->base_eval) > 999) {
+			return;
+		}
 		l_append(l_to, n->state);
 		n = n->next;
 	}
@@ -153,20 +164,6 @@ static List* l_sort(List* l)
 	return sorted;
 }
 
-static List* possible_moves(State* s)
-{
-	List*	list;
-	int	i;
-
-	list = init_list();
-	for (i = 0; i < s->b->cols; i++) {
-		if (s->field[0][i] == 0) {
-			l_append(list, init_state(s, i));
-		}
-	}
-	return list;
-}
-
 static State* best_state(State* s)
 {
 	if (s->children != NULL && s->children->size > 0) {
@@ -175,19 +172,61 @@ static State* best_state(State* s)
 	return NULL;
 }
 
+static int get_move_row(State* s)
+{
+	int**	field;
+	int	row;
+
+	field = s->b->field;
+	assert(field[0][s->move_col] == 0);
+
+	row = 0;
+	while (row < s->b->rows - 1) {
+		if (field[row + 1][s->move_col] != 0) {
+			break;
+		}
+		row++;
+	}
+	return row;
+}
+
+static State* init_state(State* parent, int move)
+{
+	State*	s;
+	s = malloc(sizeof(State));
+
+	s->b = parent->b;
+	s->parent = parent;
+	s->children = NULL;
+	s->move_col = move;
+	s->turn = -s->parent->turn;
+	s->base_eval = 0;
+	s->eval = 0;
+	s->depth = parent->depth + 1;
+	s->move_row = get_move_row(s);
+	return s;
+}
+
 static void free_state(State* s)
 {
-	int	i;
-
-	for (i = 0; i < s->b->rows; i++) {
-		free(s->field[i]);
-	}
-	free(s->field);
-
 	if (s->children != NULL) {
 		free_list_and_contents(s->children);
 	}
 	free(s);
+}
+
+static List* possible_moves(State* s)
+{
+	List*	list;
+	int	i;
+
+	list = init_list();
+	for (i = 0; i < s->b->cols; i++) {
+		if (s->b->field[0][i] == 0) {
+			l_append(list, init_state(s, i));
+		}
+	}
+	return list;
 }
 
 static int tree_depth(State* root)
@@ -220,57 +259,16 @@ static int** clone_field(Bot* g, int** old_field)
 	return new_f;
 }
 
-static int** new_field(State* s)
-{
-	int**	new_f;
-	new_f = clone_field(s->b, s->parent->field);
-	new_f[s->move_row][s->move_col] = -s->turn;
-	return new_f;
-}
-
-static int get_move_row(State* s)
-{
-	int	row;
-	assert(s->parent->field[0][s->move_col] == 0);
-
-	row = 0;
-	while (row < s->b->rows - 1) {
-		if (s->parent->field[row + 1][s->move_col] != 0) {
-			break;
-		}
-		row++;
-	}
-	return row;
-}
-
-static State* init_state(State* parent, int move)
-{
-	State*	s;
-	s = malloc(sizeof(State));
-
-	s->b = parent->b;
-	s->parent = parent;
-	s->children = NULL;
-	s->move_col = move;
-	s->turn = -s->parent->turn;
-	s->base_eval = parent->base_eval;
-	s->eval = parent->base_eval;
-	s->depth = parent->depth + 1;
-	s->move_row = get_move_row(s);
-	s->field = new_field(s);
-	return s;
-}
-
-static int eval_field(Bot* g, int** field)
+static int eval_field(Bot* b)
 {
 	int	sum;
 	int	i;
 	int	j;
 
 	sum = 0;
-	for (i = 0; i < g->rows; i++) {
-		for (j = 0; j < g->cols; j++) {
-			sum += eval_square(g, field, i, j);
+	for (i = 0; i < b->rows; i++) {
+		for (j = 0; j < b->cols; j++) {
+			sum += eval_square(b, i, j);
 		}
 	}
 
@@ -288,6 +286,7 @@ static Bot* init_bot(Game* g)
 	b->root = root;
 	b->rows = g->rows;
 	b->cols = g->cols;
+	b->field = clone_field(b, g->field);
 
 	root->b = b;
 	root->depth = 0;
@@ -296,10 +295,21 @@ static Bot* init_bot(Game* g)
 	root->move_row = -1;
 	root->turn = g->turn;
 	root->children = NULL;
-	root->field = clone_field(b, g->field);
-	root->base_eval = eval_field(b, root->field);
+	root->base_eval = eval_field(b);
 	root->eval = root->base_eval;
 	return b;
+}
+
+static void free_bot(Bot* b)
+{
+	int	i;
+
+	for (i = 0; i < b->rows; i++) {
+		free(b->field[i]);
+	}
+	free(b->field);
+	free_state(b->root);
+	free(b);
 }
 
 static int value(int p_1, int p_2)
@@ -328,8 +338,9 @@ static int value(int p_1, int p_2)
 	return -99999;
 }
 
-static int eval_rows(Bot* g, int** field, int row, int col)
+static int eval_rows(Bot* b, int row, int col)
 {
+	int**	field;
 	int	sum;
 	int	i;
 	int	j;
@@ -338,9 +349,10 @@ static int eval_rows(Bot* g, int** field, int row, int col)
 	int	p_1;
 	int	p_2;
 
+	field = b->field;
 	sum = 0;
 	floor = max(0, col - 3);
-	roof = min(g->cols, col + 4) - 4;
+	roof = min(b->cols, col + 4) - 4;
 	for (i = floor; i <= roof; i++) {
 		p_1 = 0;
 		p_2 = 0;
@@ -357,8 +369,9 @@ static int eval_rows(Bot* g, int** field, int row, int col)
 	return sum;
 }
 
-static int eval_cols(Bot* g, int** field, int row, int col)
+static int eval_cols(Bot* b, int row, int col)
 {
+	int**	field;
 	int	sum;
 	int	i;
 	int	j;
@@ -367,9 +380,10 @@ static int eval_cols(Bot* g, int** field, int row, int col)
 	int	p_1;
 	int	p_2;
 
+	field = b->field;
 	sum = 0;
 	floor = max(0, row - 3);
-	roof = min(g->rows, row + 4) - 4;
+	roof = min(b->rows, row + 4) - 4;
 	for (i = floor; i <= roof; i++) {
 		p_1 = 0;
 		p_2 = 0;
@@ -385,8 +399,9 @@ static int eval_cols(Bot* g, int** field, int row, int col)
 	return sum;
 }
 
-static int eval_diags(Bot* g, int** field, int row, int col)
+static int eval_diags(Bot* b, int row, int col)
 {
+	int**	field;
 	int	sum;
 	int	i;
 	int	j;
@@ -395,10 +410,11 @@ static int eval_diags(Bot* g, int** field, int row, int col)
 	int	p_1;
 	int	p_2;
 
+	field = b->field;
 	sum = 0;
 	/* Diagonally down */
 	floor = -min(3, min(row, col));
-	roof = max(-3, min(g->rows - row, g->cols - col) - 4);
+	roof = max(-3, min(b->rows - row, b->cols - col) - 4);
 	for (i = floor; i <= roof; i++) {
 		p_1 = 0;
 		p_2 = 0;
@@ -413,8 +429,8 @@ static int eval_diags(Bot* g, int** field, int row, int col)
 	}
 
 	/* Diagonally up */
-	floor = -min(3, min(g->rows - row - 1, col));
-	roof = max(-3, min(row, g->cols - col) - 4);
+	floor = -min(3, min(b->rows - row - 1, col));
+	roof = max(-3, min(row, b->cols - col) - 4);
 	for (i = floor; i <= roof; i++) {
 		p_1 = 0;
 		p_2 = 0;
@@ -430,18 +446,21 @@ static int eval_diags(Bot* g, int** field, int row, int col)
 	return sum;
 }
 
-static int eval_square(Bot* g, int** field, int row, int col)
+static int eval_square(Bot* b, int row, int col)
 {
-	if (field[row][col] == 0) {
+	if (b->field[row][col] == 0) {
 		return 0;
 	}
-	return eval_rows(g, field, row, col) + eval_cols(g, field, row, col) +
-		eval_diags(g, field, row, col);
+	return eval_rows(b, row, col) + eval_cols(b, row, col) +
+		eval_diags(b, row, col);
 }
 
 static void eval_state(State* s)
 {
-	s->eval = eval_field(s->b, s->field);
+	s->b->field[s->move_row][s->move_col] = -s->turn;
+	s->base_eval = eval_square(s->b, s->move_row, s->move_col);
+	s->eval = s->parent->base_eval + s->base_eval;
+	s->b->field[s->move_row][s->move_col] = 0;
 }
 
 static void reevaluate(State* state)
@@ -459,11 +478,38 @@ static void reevaluate(State* state)
 	}
 }
 
+static void update_field(State* s)
+{
+	State*	s_i;
+	int**	field;
+
+	field = s->b->field;
+	s_i = s;
+	while (s_i->parent != NULL) {
+		field[s_i->move_row][s_i->move_col] = -s_i->turn;
+		s_i = s_i->parent;
+	}
+}
+
+static void reset_field(State* s)
+{
+	State*	s_i;
+	int**	field;
+
+	field = s->b->field;
+	s_i = s;
+	while (s_i->parent != NULL) {
+		field[s_i->move_row][s_i->move_col] = 0;
+		s_i = s_i->parent;
+	}
+}
+
 static void eval_children(List* work, State* s)
 {
 	List*	sorted;
 	State*	child;
 
+	update_field(s);
 	s->children = possible_moves(s);
 	if (s->children->size == 0) {
 		/* No more available moves */
@@ -476,45 +522,67 @@ static void eval_children(List* work, State* s)
 		l_append_sorted(sorted, child);
 		child = l_pop_first(s->children);
 	}
+	reset_field(s);
 	free(s->children);
 	s->children = sorted;
-	l_add_n(s->children, work);
+	l_add_n(s->children, work, s->b->cols);
 	s->eval = best_state(s)->eval;
 	reevaluate(s->parent);
 }
 
-int get_best_move(Game* g, time_t seconds, int logging)
+static long good_batch_nbr(List* work, clock_t start, clock_t stop, int first)
+{
+	State*	s;
+	int	batch;
+	clock_t	passed;
+	clock_t	batch_ticks;
+
+	for (batch = 0; batch < first; batch++) {
+		s = l_pop_first(work);
+		if (s == NULL) {
+			break;
+		}
+		eval_children(work, s);
+	}
+	passed = clock() - start;
+	batch_ticks = (stop - clock()) / 4;
+	return first * batch_ticks / passed;
+}
+
+int bot_move(Game* g, double seconds, int logging)
 {
 	Bot*	b;
 	List*	work;
 	State*	s;
-	time_t	start;
-	int	best;
+	clock_t	start;
+	clock_t	stop;
+	double	time_diff;
+	long	batch_size;
+	long	best;
+	int	first_batch;
 	int	batch;
-	int	batch_size;
 	int	iterations;
 
+	start = clock();
 	b = init_bot(g);
-
-	start = time(NULL);
-	batch_size = 10000;
-	iterations = 0;
 	work = init_list();
 	l_append(work, b->root);
+	batch = 0;
+	iterations = 0;
 
-	while (work->first != NULL && time(NULL) < start + seconds) {
+	first_batch = 1000;
+	stop = start + ((clock_t) (seconds * CLOCKS_PER_SEC));
+	batch_size = good_batch_nbr(work, start, stop, first_batch);
+	while (work->first != NULL && clock() < stop) {
+		iterations++;
 		for (batch = 0; batch < batch_size; batch++) {
 			s = l_pop_first(work);
 			if (s == NULL) {
+				iterations--;
 				break;
 			}
 			eval_children(work, s);
 		}
-		iterations++;
-	}
-	if (logging) {
-		printf("\tEvaluated nodes: %d\n", ((iterations - 1) * batch_size) + batch);
-		printf("\tAchieved depth %d\n", tree_depth(b->root));
 	}
 	s = best_state(b->root);
 	best = -1;
@@ -522,8 +590,17 @@ int get_best_move(Game* g, time_t seconds, int logging)
 		best = s->move_col;
 	}
 
+	if (logging) {
+		time_diff = (double) (clock() - start) / CLOCKS_PER_SEC;
+		printf("\tTime passed (ms): %.3f\n", time_diff);
+		printf("\tBatch size: %ld\n", batch_size);
+		printf("\tEvaluated nodes: %ld\n", (iterations * batch_size) +
+			batch + first_batch);
+		printf("\tDepth computed: %d\n", tree_depth(b->root));
+		printf("\tCurrent evaluation: %d\n", b->root->eval);
+	}
+
 	free_list(work);
-	free_state(b->root);
-	free(b);
+	free_bot(b);
 	return best;
 }
